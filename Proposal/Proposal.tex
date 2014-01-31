@@ -18,7 +18,12 @@
 \section{Need}
 	In commercial applications, reliability and fool-proofing are important.
 	If an entire network or a section of one can be taken down through a simple user error (or by a malicious user), there is a need for a system to address and resolve this.
+	Except for a in few special applications, Ethernet is far and away the most popular choice of link layer protocol. In consumer and enterprise level networks there isn’t really another viable choice. Ethernet’s popularity stems from its simplicity and versatility, but it is not without shortcomings. Typical modern installations of switched ethernet are highly susceptible to broadcast storms created by forwarding loops. This problem is especially important in networks with pulicly accessible infrastructure such as schools and hotels. Intelligent switching hardware could prevent these broadcast storms from occurring, and additionally, could provide better reliability and reduce bottlenecks by allowing redundant links and bandwidth sharing between routes.
 \section{Approach}
+    The team proposes the creation of an ethernet switch with a special cache that stores the receive ports and CRC codes of broadcast frames. Using this information a switch can identify messages that it has already broadcast and identify loops in the network. Because the cost and performance of cache memory will limit the size of a network that can be detected, the device can fall back to broadcasting special frames and identifying loops by looking for those frames.
+    To determine the feasibility of this approach to intelligent switching the team will first simulate the behavior of a network of intelligent switches in software. If the approach proves to be successful in simulation, the team will attempt to create a basic hardware implementation of an intelligent ethernet switch. 
 \section{Benefit}
+    Using this information, intelligent switches will be able to detect and avoid link failures and share bandwidth between redundant links to mitigate bottlenecks. Because switches on this protocol will still be entirely compliant with Ethernet, this approach will also allow switches that are not able to detect loops to operate in the same network.
 \section{Competition}
+    Previous research has identified methods of detecting and eliminating routing loops in switched ethernet networks but falls short of network topology detection for link redundancy or bandwidth sharing. 
 \end{document}
