@@ -13,7 +13,7 @@
 \begin{abstract}
 	Our project aims to address a need for more resilient, higher performance Layer 2 by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
 	In addition, we aim to allow switches to distribute bandwidth over multiple interfaces when connected together.
-	This allows us to not only be competitive with systems such as Etherfuse, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
+	This allows us to not only be competitive with systems such as Etherfuse \cite{etherfuse}, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
 \end{abstract}
 \section{Need}
 	Except for a in few special applications, Ethernet is far and away the most popular choice of link layer protocol.
@@ -51,6 +51,13 @@
 	Since our switches are auto-configuring as well as backwards compatible with existing hardware, implementing them in a network requires a very low installation and maintenance overhead.
 \section{Competition}
 	Previous research has identified methods of detecting and eliminating routing loops in switched ethernet networks but falls short of network topology detection for link redundancy or bandwidth sharing.
-	One such research paper is Etherfuse, which documents a system by which a switch would be able to detect forwarding loops and graph structure in an Ethernet network.
+	One such research paper is Etherfuse \cite{etherfuse}, which documents a system by which a switch would be able to detect forwarding loops and graph structure in an Ethernet network.
 	The paper only suggests that the switch could then disable the link that was creating the forwarding loop, as opposed to using it to increase bandwidth between switches.
+	
+\begin{thebibliography}{9}
+\bibitem{etherfuse}
+	Khaled Elmeleegy, Alan L. Cox, T. S. Eugene Ng,
+	\emph{EtherFuse: An Ethernet Watchdog}.
+	Rice University, 2007.
+\end{thebibliography}
 \end{document}
