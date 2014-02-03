@@ -5,15 +5,15 @@
 \usepackage{fullpage}
 
 \title{CS 4516 Project Proposal\\Group \#5: Bandwidth Trunking Using Layer 2 Devices}
-\author{Jason Rosenman \and Louis Fogel \and Samuel Abradi}
+\author{Jason Rosenman \and Louis Fogel \and Sam Abradi}
 \date{}
 
 \begin{document}
 \maketitle
 \begin{abstract}
-	Our project aims to address a need for more resilient Layer 2 by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
+	Our project aims to address a need for more resilient, higher performance Layer 2 by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
 	In addition, we aim to allow switches to distribute bandwidth over multiple interfaces when connected together.
-	This allows us to be competitive with systems such as Etherfuse, which prevents forwarding loops by disabling ports that it detects are linked.
+	This allows us to not only be competitive with systems such as Etherfuse, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
 \end{abstract}
 \section{Need}
 	Except for a in few special applications, Ethernet is far and away the most popular choice of link layer protocol.
@@ -27,22 +27,28 @@
 	In commercial systems, reliability and fool-proofing are important.
 	With Ethernet as it currently stands (without intelligent switching hardware), a malicious or simply confused user could easily create broadcast storms or forwarding loops simply by connecting a switch to itself or directly to another switch that is already connected to that switch.
 	These storms could easily bring down all or part of a large network.
-	Therefore, there is a need for a system to address and resolve this security risk.
+	Therefore, there is a need for a system to address and resolve this security and performance risk.
 \section{Approach}
-	The team proposes the creation of an ethernet switch with a special cache that stores the receive ports and CRC codes of broadcast frames.
+	Our team proposes the creation of an ethernet switch with a special cache that stores a hash of each broadcast frame along with the port it was recieved on.
 	Using this information a switch can identify messages that it has already broadcast and identify loops in the network.
+        To increase efficiency and lower cost, we will use the CRC that is already there as the hash.
 	Because the cost and performance of cache memory will limit the size of a network that can be detected, the device can fall back to broadcasting special frames and identifying loops by looking for those frames.
 
 	Each CRC stored in the cache will be associated with a time-to-live (TTL).
 	If the cache fills before the TTLs start to expire, the hardware will detect that the network is too large to use this approach and will fall back to broadcasting special frames to detect the network topology.
+        Since we aready have the hardware, the switches will still use the caching scheme where they can, becase ithas the potential for better performance.
+
+        If a host can be seen from multiple interfaces at once, we will use the difference in arrival times to prioritize which interface to use. 
+        This will help to prevent accidentally clogging the network by potentially sneding frames through as many switches as possible. Once again, this behavior is not exactly very switch-like, but it will potentially save a lot needless network traffic. 
+        It also will be fairly cheap and simple to impliment, which at least adheres to the philosophy behind the popularity of switches.
 
 	To determine the feasibility of this approach to intelligent switching the team will first simulate the behavior of a network of intelligent switches in software.
 	If the approach proves to be successful in simulation, the team will attempt to create a basic hardware implementation of an intelligent ethernet switch.
 \section{Benefit}
 	Using this information, intelligent switches will be able to detect and avoid link failures and share bandwidth between redundant links to mitigate bottlenecks.
-	Because switches on this protocol will still be entirely compliant with Ethernet, this approach will also allow switches that are not able to detect loops to operate in the same network.
+	Because switches on this protocol will still be entirely compliant with existing Ethernet networks, this approach will also allow switches that are not able to detect loops to operate in the same network.
 	If non-intelligent switches are used in combination with at least one intelligent switch and the network is small enough to allow CRC caching, our hardware should still be able to share bandwidth by essentially tricking the non-intelligent switch into thinking that it is two switches attached to separate ports.
-	Since our switches are auto-configuring, implementing them in a network requires a very low installation and maintenance overhead.
+	Since our switches are auto-configuring as well as backwards compatible with existing hardware, implementing them in a network requires a very low installation and maintenance overhead.
 \section{Competition}
 	Previous research has identified methods of detecting and eliminating routing loops in switched ethernet networks but falls short of network topology detection for link redundancy or bandwidth sharing.
 	One such research paper is Etherfuse, which documents a system by which a switch would be able to detect forwarding loops and graph structure in an Ethernet network.
