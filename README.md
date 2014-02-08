@@ -7,3 +7,4 @@ A simulation for a "smart" switch that would allow redundant links using bandwid
 
 Dependencies:
 	* impacket >= 0.9.11 for network simulation.
+	* Python2.7
