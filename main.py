@@ -1,9 +1,12 @@
 # Bring everything together.
 
 
-import socket, string, sys, re, os
+
 from impacket import ImpactDecoder, ImpactPacket
 
+## Import various python built in modules needed to process text, open
+## sockets, search through text with regexp,  and run system commands.
+import socket, impacket, string, sys, commands, re, os
 from struct import *
 
 def makepacket():
@@ -11,7 +14,7 @@ def makepacket():
 	ethernet.set_ether_dhost([0xFF,0xFF,0xFF,0xFF,0xFF,0xFF])
 	ethernet.set_ether_shost([0x00,0x00,0x00,0x00,0x00,0x00])
 	ethernet.set_ether_type(0x01FF)
-	ethernet.contains("Hello, world!")
+	
 	return ethernet.get_packet()
 
 packet = makepacket()
