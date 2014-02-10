@@ -17,10 +17,10 @@
 	As a result, ongoing connections could be maintained throughout a link failure.
 
 	A notable challenge to our implementation is the instantaneous detection of loops in the network.
-	We propose to detect these loops by caching a hash of each frame that is recieved, and comparing it to incoming frames to detect duplicates.
+	We propose detecting these loops by caching a hash of each frame that is received, and comparing it to incoming frames to detect duplicates.
 	To increase efficiency and lower cost, we will use the CRC that is already included in the Ethernet frame as the hash.
 	The cache will take the form of a circular buffer.
-	As new CRCs are added to the buffer, the older ones will be pushed out.
+	As new CRCs are added to the buffer, the older ones will be overwritten.
 	We will calculate the necessary size of the buffer using estimated time-to-live (TTL) values for the CRCs.
 	The TTL will be a function of the maximum number of hops in a loop for a network of a given size, and of the maximum amount of broadcast traffic.
 	These maximums are practical limitations on the system we are interested in supporting, as opposed to theoretical limitations.
