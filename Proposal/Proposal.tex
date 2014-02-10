@@ -31,16 +31,16 @@
 \section{Approach}
 	Our team proposes the creation of an Ethernet switch with a special cache that stores a hash of each broadcast frame along with the port it was received on.
 	Using this information a switch can identify messages that it has already broadcast and identify loops in the network.
-        To increase efficiency and lower cost, we will use the CRC that is already there as the hash.
+	To increase efficiency and lower cost, we will use the CRC that is already there as the hash.
 	Because the cost and performance of cache memory will limit the size of a network that can be detected, the device can fall back to broadcasting special frames and identifying loops by looking for those frames.
 
 	Each CRC stored in the cache will be associated with a time-to-live (TTL).
 	If the cache fills before the TTLs start to expire, the hardware will detect that the network is too large to use this approach and will fall back to broadcasting special frames to detect the network topology.
         Since we already have the hardware, the switches will still use the caching scheme where they can, because it has the potential for better performance.
 
-        If a host can be seen from multiple interfaces at once, we will use the difference in arrival times to prioritize which interface to use. 
-        This will help to prevent accidentally clogging the network by potentially sending frames through as many switches as possible. Once again, this behavior is not exactly very switch-like, but it will potentially save a lot needless network traffic. 
-        It also will be fairly cheap and simple to implement, which at least adheres to the philosophy behind the popularity of switches.
+	If a host can be seen from multiple interfaces at once, we will use the difference in arrival times to prioritize which interface to use. 
+	This will help to prevent accidentally clogging the network by potentially sending frames through as many switches as possible. Once again, this behavior is not exactly very switch-like, but it will potentially save a lot needless network traffic. 
+	It also will be fairly cheap and simple to implement, which at least adheres to the philosophy behind the popularity of switches.
 
 	To determine the feasibility of this approach to intelligent switching the team will first simulate the behavior of a network of intelligent switches in software.
 	If the approach proves to be successful in simulation, the team will attempt to create a basic hardware implementation of an intelligent Ethernet switch.
