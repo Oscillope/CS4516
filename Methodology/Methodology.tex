@@ -10,19 +10,19 @@
 
 \begin{document}
 \maketitle
-	Our team proposes the creation of an Ethernet switch that implements flow-based forwarding.
-	Unlike a conventional switch, which uses a forwarding table to determine which interface to forward frames to, our system would set up flows based on source IP address (when available) to allow bandwidth sharing over linked interfaces.
-	Even when linked with a conventional switch, our device could utilize multiple links to share bandwidth upstream (towards the linked switch) and have redundancy downstream (from the linked switch).
-	Assuming that the conventional switch would forward to multiple ports simultaneously if it detects the same MAC address multiple times, a link could go down between our switch and the conventional switch without dropping a single frame.
-	As a result, ongoing connections could be maintained throughout a link failure.
+	Our team will create an Ethernet switch that implements flow-based forwarding.
+	Unlike a conventional switch, which uses a forwarding table to determine which interface to forward frames to, our system will set up flows based on source IP address (when available) to allow bandwidth sharing over linked interfaces.
+	Even when linked with a conventional switch, our device can utilize multiple links to share bandwidth upstream (towards the linked switch) and have redundancy downstream (from the linked switch).
+	Assuming that the conventional switch will forward to multiple ports simultaneously if it detects the same MAC address multiple times, a link can go down between our switch and the conventional switch without dropping a single frame.
+	As a result, ongoing connections can be maintained throughout a link failure.
 
 	A notable challenge to our implementation is the instantaneous detection of loops in the network.
-	We propose detecting these loops by caching a hash of each frame that is received, and comparing it to incoming frames to detect duplicates.
+	We will detect these loops by caching a hash of each frame that is received, and comparing it to incoming frames to detect duplicates.
 	To increase efficiency and lower cost, we will use the CRC that is already included in the Ethernet frame as the hash.
 	The cache will take the form of a circular buffer.
 	As new CRCs are added to the buffer, the older ones will be overwritten.
 	We will calculate the necessary size of the buffer using estimated time-to-live (TTL) values for the CRCs.
-	The TTL will be a function of the maximum number of hops in a loop for a network of a given size, and of the maximum amount of broadcast traffic.
+	The TTL will be a function of the maximum number of hops in a loop, and of the maximum amount of broadcast traffic.
 	These maximums are practical limitations on the system we are interested in supporting, as opposed to theoretical limitations.
 	In the case that these maximums are exceeded, our device will fall back to simply disabling redundant links when a loop is detected, thereby turning the network into a directed acyclic graph.
 	The looped interface will remain disabled until the state of the network falls within the limits of the cache.
@@ -34,18 +34,19 @@
 	In this condition, the device will delete all flows related to that loop.
 	This will cause it to rebuild new flows using the remaining available links.
 
-	To determine the feasibility of this approach to intelligent switching the team will first simulate the behavior of a network of intelligent switches in software.
+	To determine the feasibility of this approach to intelligent switching the team will simulate the behavior of a network of intelligent switches in software.
 	The team will construct a simulated network consisting of virtual machines capable of creating network traffic.
-	The virtual machines will perform a series of pre-determined requests through a virtual router to a server on the other side of the router as well as to each other.
+	The virtual machines will perform a series of pre-determined requests through a virtual router to servers both inside and outside of the network.
 	We will also have servers on the virtual network that will recieve requests from other hosts on the network as well as foreign hosts outside the network.
 	We will verify the functionality of our system by confirming that the requests and responses are correct.
+	The effectiveness of the system will be measured by gauging the latency and throughput of the network in forwarding the requests.
 	
-	Using Python and the impacket library we will create a switch emulator using a virtual machine with a significant number of network interfaces.
+	Using Python and the impacket library we will create a switch emulator using a virtual machine with enough network interfaces to support the topologies we will test.
 	We will also simulate the behavior of a conventional switch to demonstrate that our approach works in conjuntion with these switches, as well as to demonstrate the advantage of our switch over a conventional device.
 	
-	We will test using several different topologies.
+	Several topologies will be employed in testing our system.
 	We will start with a single smart switch in a star topology (to test its basic functionality as a switch), then move to one of our switches along with a conventional switch in a loop topology.
 	We can also test with two conventional switches in the same configuration, to demonstrate that a broadcast storm would occur under these conditions.
-	Next, we will move to more complicated topologies involving several smart switches in addition to conventional switches.
+	Next, we will move to a topology involving multiple smart switches connected to each other.
 	Our final test will simulate a loop topology that exceeds the capacity of the circular buffer to ensure that the switch can still fall back to disabling loop links even if it cannot keep track of the entire network topology.
 \end{document}
