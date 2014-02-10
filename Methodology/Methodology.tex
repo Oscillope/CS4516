@@ -2,9 +2,9 @@
 \usepackage[T1]{fontenc}
 \usepackage[utf8]{inputenc}
 \usepackage[section]{placeins}
-\usepackage{fullpage}
+\usepackage[cm]{fullpage}
 
-\title{Group \#5: Bandwidth Trunking Using Layer 2 Devices\\Methodology}
+\title{CS 4516 Group \#5: Bandwidth Trunking Using Layer 2 Devices\\Methodology}
 \author{Jason Rosenman \and Louis Fogel \and Sam Abradi}
 \date{}
 
@@ -28,14 +28,24 @@
 	The looped interface will remain disabled until the state of the network falls within the limits of the cache.
 	
 	When no redundant links exist, the created flows will essentially form a forwarding table.
-	However, when redundant links are formed, the device will use the source IP address of the packet to make decisions as to which link to send the frame over.
-
-	If a host can be seen from multiple interfaces at once, we will use the difference in arrival times to prioritize which interface to use.
-	This will help to prevent accidentally clogging the network by potentially sending frames through as many switches as possible. Once again, this behavior is not exactly very switch-like, but it will potentially save a lot needless network traffic. 
-	It also will be fairly cheap and simple to implement, which at least adheres to the philosophy behind the popularity of switches.
+	However, when redundant links are formed, the device will use the source IP address of the packet to make flows that determine forwarding strategy for frames.
+	Flows will be created based on measured bandwidth of interfaces with the goal of evening utilization.
+	Our device will detect link failures when a previously existing loop no longer exists.
+	In this condition, the device will delete all flows related to that loop.
+	This will cause it to rebuild new flows using the remaining available links.
 
 	To determine the feasibility of this approach to intelligent switching the team will first simulate the behavior of a network of intelligent switches in software.
-	The team will construct a simulated network consisting of virtual machines capable of creating realistic network conditions.
+	The team will construct a simulated network consisting of virtual machines capable of creating network traffic.
+	The virtual machines will perform a series of pre-determined requests through a virtual router to a server on the other side of the router as well as to each other.
+	We will also have servers on the virtual network that will recieve requests from other hosts on the network as well as foreign hosts outside the network.
+	We will verify the functionality of our system by confirming that the requests and responses are correct.
+	
 	Using Python and the impacket library we will create a switch emulator using a virtual machine with a significant number of network interfaces.
-	We will also simulate the behavior of a regular ``dumb'' switch to demonstrate that our approach works in conjuntion with these switches, as well as to demonstrate the advantage of our switch over a conventional device.
+	We will also simulate the behavior of a conventional switch to demonstrate that our approach works in conjuntion with these switches, as well as to demonstrate the advantage of our switch over a conventional device.
+	
+	We will test using several different topologies.
+	We will start with a single smart switch in a star topology (to test its basic functionality as a switch), then move to one of our switches along with a conventional switch in a loop topology.
+	We can also test with two conventional switches in the same configuration, to demonstrate that a broadcast storm would occur under these conditions.
+	Next, we will move to more complicated topologies involving several smart switches in addition to conventional switches.
+	Our final test will simulate a loop topology that exceeds the capacity of the circular buffer to ensure that the switch can still fall back to disabling loop links even if it cannot keep track of the entire network topology.
 \end{document}
