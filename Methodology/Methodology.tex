@@ -10,21 +10,32 @@
 
 \begin{document}
 \maketitle
+	Our team proposes the creation of an Ethernet switch that implements flow-based forwarding.
+	Unlike a conventional switch, which uses a forwarding table to determine which interface to forward frames to, our system would set up flows based on source IP address (when available) to allow bandwidth sharing over linked interfaces.
+	Even when linked with a conventional switch, our device could utilize multiple links to share bandwidth upstream (towards the linked switch) and have redundancy downstream (from the linked switch).
+	Assuming that the conventional switch would forward to multiple ports simultaneously if it detects the same MAC address multiple times, a link could go down between our switch and the conventional switch without dropping a single frame.
+	As a result, ongoing connections could be maintained throughout a link failure.
 
-	Our team proposes the creation of an Ethernet switch with a special cache that stores a hash of each broadcast frame along with the port it was received on.
-	Using this information a switch can identify messages that it has already broadcast and identify loops in the network.
-	To increase efficiency and lower cost, we will use the CRC that is already there as the hash.
-	Because the cost and performance of cache memory will limit the size of a network that can be detected, the device can fall back to broadcasting special frames and identifying loops by looking for those frames.
+	A notable challenge to our implementation is the instantaneous detection of loops in the network.
+	We propose to detect these loops by caching a hash of each frame that is recieved, and comparing it to incoming frames to detect duplicates.
+	To increase efficiency and lower cost, we will use the CRC that is already included in the Ethernet frame as the hash.
+	The cache will take the form of a circular buffer.
+	As new CRCs are added to the buffer, the older ones will be pushed out.
+	We will calculate the necessary size of the buffer using estimated time-to-live (TTL) values for the CRCs.
+	The TTL will be a function of the maximum number of hops in a loop for a network of a given size, and of the maximum amount of broadcast traffic.
+	These maximums are practical limitations on the system we are interested in supporting, as opposed to theoretical limitations.
+	In the case that these maximums are exceeded, our device will fall back to simply disabling redundant links when a loop is detected.
+	The looped interface will remain disabled until the state of the network falls within the limits of the cache.
+	
+	When no redundant links exist, the created flows will essentially form a forwarding table.
+	However, when redundant links are formed, the device will use the source IP address of the packet to make decisions as to which link to send the frame over.
 
-	Each CRC stored in the cache will be associated with a time-to-live (TTL).
-	If the cache fills before the TTLs start to expire, the hardware will detect that the network is too large to use this approach and will fall back to broadcasting special frames to detect the network topology.
-        Since we already have the hardware, the switches will still use the caching scheme where they can, because it has the potential for better performance.
-
-	If a host can be seen from multiple interfaces at once, we will use the difference in arrival times to prioritize which interface to use. 
+	If a host can be seen from multiple interfaces at once, we will use the difference in arrival times to prioritize which interface to use.
 	This will help to prevent accidentally clogging the network by potentially sending frames through as many switches as possible. Once again, this behavior is not exactly very switch-like, but it will potentially save a lot needless network traffic. 
 	It also will be fairly cheap and simple to implement, which at least adheres to the philosophy behind the popularity of switches.
 
 	To determine the feasibility of this approach to intelligent switching the team will first simulate the behavior of a network of intelligent switches in software.
-	If the approach proves to be successful in simulation, the team will attempt to create a basic hardware implementation of an intelligent Ethernet switch.
-	
+	The team will construct a simulated network consisting of virtual machines capable of creating realistic network conditions.
+	Using Python and the impacket library we will create a switch emulator using a virtual machine with a significant number of network interfaces.
+	We will also simulate the behavior of a regular ``dumb'' switch to demonstrate that our approach works in conjuntion with these switches, as well as to demonstrate the advantage of our switch over a conventional device.
 \end{document}
