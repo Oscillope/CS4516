@@ -1,2 +1,4 @@
-argparse==1.2.1
+argparse==1.1
+impacket==0.9.11
+scapy==2.2.0-dev
 wsgiref==0.1.2

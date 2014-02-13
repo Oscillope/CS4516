@@ -1,7 +1,5 @@
 # Bring everything together.
 
-
-
 from impacket import ImpactDecoder, ImpactPacket
 
 ## Import various python built in modules needed to process text, open
