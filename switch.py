@@ -11,7 +11,13 @@ class Switch:
     # Dictionary mapping destinations to interfaces
     hosts = {}
 
-    def add_interface(self, iface):
+    def __init__(self, iface_list=None):
+        if iface_list is None:
+            raise RuntimeError("You must specify at least one interface to switch on")
+        for iface in iface_list:
+            self._add_interface(iface)
+
+    def _add_interface(self, iface):
         # Initialize frame queue and map to interface
         queue = Queue()
         queues[iface] = queue
@@ -22,7 +28,7 @@ class Switch:
         # Start sniffing interface
         proc.start()
 
-	def activate_interface(self, iface, queue):
+	def _activate_interface(self, iface, queue):
 	    try:
 	        # Sniff specified interface for Ethernet packets and put them
 	        # into the queue
@@ -30,7 +36,7 @@ class Switch:
 	    except:
 	        sys.exit(1)
 	
-	def forward_packet(self, pkt, iface):
+	def _forward_packet(self, pkt, iface):
 	    eth_header = pkt['Ethernet']
 	    # Map source port to interface
 	    # TODO: Handle multiple instances of one address
