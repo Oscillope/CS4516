@@ -32,9 +32,13 @@ class Switch:
         try:
             # Sniff specified interface for Ethernet packets and put them
             # into the queue
-            sniff(filter="ether", prn=lambda(pkt):queue.put(pkt), iface=iface)
+            sniff(filter="ether", prn=self._handle_packet, iface=iface)
         except:
             sys.exit(1)
+            
+    def _handle_packet(self, packet):
+        queue.put(packet)
+        print "Recieved packet!", packet.show()
     
     def _forward_packet(self, pkt, iface):
         eth_header = pkt['Ethernet']
@@ -47,6 +51,7 @@ class Switch:
             try:
                 dst_iface = hosts[eth_header.dst]
                 # If mapping is found, forward frame
+                print "Sending packet!", packet.show()
                 return sendp(pkt, iface=dst_iface)
             except KeyError:
                 pass
@@ -54,6 +59,7 @@ class Switch:
         # was received on
         for dst_iface in self.queues.keys():
             if dst_iface != iface:
+                print "Sending packet!", packet.show()
                 sendp(pkt, iface=dst_iface)
         return
         
