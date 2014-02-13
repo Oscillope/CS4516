@@ -1,7 +1,7 @@
 # This file will simulate a switch.
 from scapy.all import *
 from multiprocessing import Process, Queue
-import sys
+import sys, traceback
 
 class Switch:
     # Dictionary mapping interface names to frame queues
@@ -20,11 +20,11 @@ class Switch:
     def _add_interface(self, iface):
         # Initialize frame queue and map to interface
         queue = Queue()
-        queues[iface] = queue
+        self.queues[iface] = queue
         # Create process for sniffing interface
-        proc = Process(target=self.start_switching, args=(iface,queue))
+        proc = Process(target=self._activate_interface, args=(iface,queue))
         # Add process to list
-        processes[iface] = proc
+        self.processes[iface] = proc
         # Start sniffing interface
         proc.start()
 
@@ -52,7 +52,7 @@ class Switch:
                 pass
         # Otherwise, broadcast to all interfaces except the one the frame
         # was received on
-        for dst_iface in queues.keys():
+        for dst_iface in self.queues.keys():
             if dst_iface != iface:
                 sendp(pkt, iface=dst_iface)
         return
@@ -62,16 +62,17 @@ class Switch:
         while True:
             try:
                 # For each interface, send a frame off the queue
-                for iface, queue in queues:
+                for iface, queue in self.queues.items():
                     # Send one frame off each non-empty queue
                     if not queue.empty():
                         self.forward_packet(queue.get(), iface)
                 # Join any processes that may have terminated
-                for iface, process in processes:
+                for iface, process in self.processes.items():
                     # Check if any interfaces crashed
                     process.join(None)
                     # If the interface process is dead, log it
                     if not process.is_alive:
                         print "Interface %s terminated unexpectedly"%(iface)
             except:
-                print "Unexpected error:", sys.exc_info()[0]        
+                print "Unexpected error:"
+                traceback.print_exc(file=sys.stdout)
