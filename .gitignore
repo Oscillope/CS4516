@@ -17,5 +17,6 @@
 *.fls
 *.out
 
+venv
 Project0
 papers
