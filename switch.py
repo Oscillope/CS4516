@@ -60,17 +60,18 @@ class Switch:
 	def switch_forever(self):
 	    # Switch forever
 		while True:
-		    # For each interface, send a frame off the queue
-		    for iface, queue in queues:
-		        # Send one frame off each non-empty queue
-		        if not queue.empty()
-		            self.forward_packet(queue.get(), iface)
-            # Join any processes that may have terminated
-            for iface, process in processes:
-                # Check if any interfaces crashed
-                process.join(None)
-                # If the interface process is dead, log it
-                if not process.is_alive:
-                    print "Interface %s terminated unexpectedly"%(iface)
-		            
-		
+		    try:
+		        # For each interface, send a frame off the queue
+		        for iface, queue in queues:
+		            # Send one frame off each non-empty queue
+		            if not queue.empty()
+		                self.forward_packet(queue.get(), iface)
+                # Join any processes that may have terminated
+                for iface, process in processes:
+                    # Check if any interfaces crashed
+                    process.join(None)
+                    # If the interface process is dead, log it
+                    if not process.is_alive:
+                        print "Interface %s terminated unexpectedly"%(iface)
+            except:
+                print "Unexpected error:", sys.exc_info()[0]		
