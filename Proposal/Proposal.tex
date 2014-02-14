@@ -11,7 +11,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-	Our project aims to address a need for more resilient, higher performance Layer 2 by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
+	Our project aims to address a need for more resilient, higher performance Layer 2 with only one piece of additional hardware by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
 	In addition, we aim to allow switches to distribute bandwidth over multiple interfaces when connected together.
 	This allows us to not only be competitive with systems such as Etherfuse \cite{etherfuse}, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
 \end{abstract}
@@ -28,6 +28,10 @@
 	With Ethernet as it currently stands (without intelligent switching hardware), a malicious or simply confused user could easily create broadcast storms or forwarding loops simply by connecting a switch to itself or directly to another switch that is already connected to that switch.
 	These storms could easily bring down all or part of a large network.
 	Therefore, there is a need for a system to address and resolve this security and performance risk.
+	
+	Solutions to these problems are either too slow to allow full featured link redundancy or prohibitively expensive and involve entirely replacing network infrastructure.
+	Additionally, some of these devices depend on external configuration by administrators, incurring additional setup  and maintenance costs.
+	Our approach allows link sharing and broadcast storm mitigation in switched Ethernet networks using a single self-configuring device.
 \section{Approach}
 	Our team proposes the creation of an Ethernet switch with a special cache that stores a hash of each broadcast frame along with the port it was received on.
 	Using this information a switch can identify messages that it has already broadcast and identify loops in the network.
