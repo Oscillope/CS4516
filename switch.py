@@ -1,6 +1,7 @@
 # This file will simulate a switch.
 from scapy.all import *
-from multiprocessing import Process, Queue
+from threading import Thread
+from Queue import Queue
 import sys, traceback
 
 class Switch:
@@ -22,7 +23,7 @@ class Switch:
         queue = Queue()
         self.queues[iface] = queue
         # Create process for sniffing interface
-        proc = Process(target=self._activate_interface, args=(iface,queue))
+        proc = Thread(target=self._activate_interface, args=(iface,queue))
         # Add process to list
         self.processes[iface] = proc
         # Start sniffing interface
@@ -32,36 +33,39 @@ class Switch:
         try:
             # Sniff specified interface for Ethernet packets and put them
             # into the queue
-            sniff(prn=lambda(packet, queue): self._handle_packet(packet, queue), iface=iface)
+            sniff(prn=lambda(packet): self._handle_packet(packet, queue), iface=iface)
         except:
             print "Unexpected error:"
             traceback.print_exc(file=sys.stdout)
-            sys.exit(1)
             
     def _handle_packet(self, packet, queue):
         queue.put(packet)
-        print "Recieved packet!", packet.show()
     
     def _forward_packet(self, pkt, iface):
         eth_header = pkt['Ethernet']
         # Map source port to interface
         # TODO: Handle multiple instances of one address
-        hosts[eth_header.src] = iface
-
+        if not eth_header.src in self.hosts:
+            self.hosts[eth_header.src] = iface
+            print "Found host %s on interface %s " %(eth_header.src, iface)
+        
+        
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
-        if eth_header.dst != "FF:FF:FF:FF:FF:FF":
+        if eth_header.dst != "ff:ff:ff:ff:ff:ff":
             try:
-                dst_iface = hosts[eth_header.dst]
+                dst_iface = self.hosts[eth_header.dst]
+                if iface == dst_iface:
+                    return
                 # If mapping is found, forward frame
-                print "Sending packet!", packet.show()
+                print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
                 return sendp(pkt, iface=dst_iface)
             except KeyError:
-                pass
+                print "KeyError for address ", eth_header.dst
         # Otherwise, broadcast to all interfaces except the one the frame
         # was received on
         for dst_iface in self.queues.keys():
             if dst_iface != iface:
-                print "Sending packet!", packet.show()
+                print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
                 sendp(pkt, iface=dst_iface)
         return
         
@@ -73,14 +77,15 @@ class Switch:
                 for iface, queue in self.queues.items():
                     # Send one frame off each non-empty queue
                     if not queue.empty():
-                        self.forward_packet(queue.get(), iface)
+                        self._forward_packet(queue.get(), iface)
                 # Join any processes that may have terminated
-                for iface, process in self.processes.items():
-                    # Check if any interfaces crashed
-                    process.join(None)
-                    # If the interface process is dead, log it
-                    if not process.is_alive:
-                        print "Interface %s terminated unexpectedly"%(iface)
+                #~ for iface, process in self.processes.items():
+                    #~ # Check if any interfaces crashed
+                    #~ print "Checking thread for ", iface
+                    #~ process.join(None)
+                    #~ # If the interface process is dead, log it
+                    #~ if not process.is_alive:
+                        #~ print "Interface %s terminated unexpectedly"%(iface)
             except:
                 print "Unexpected error:"
                 traceback.print_exc(file=sys.stdout)
