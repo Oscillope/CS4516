@@ -80,21 +80,14 @@ class Switch:
                     # Send one frame off each non-empty queue
                     if not queue.empty():
                         self._forward_packet(Ether(queue.get()), iface)
-                # Join any processes that may have terminated
-                #~ for iface, process in self.processes.items():
-                    #~ # Check if any interfaces crashed
-                    #~ print "Checking thread for ", iface
-                    #~ process.join(None)
-                    #~ # If the interface process is dead, log it
-                    #~ if not process.is_alive:
-                        #~ print "Interface %s terminated unexpectedly"%(iface)
             except IndexError:
                 pass
             except KeyboardInterrupt:
                 print "Keyboard interrupt detected, exiting..."
                 for process in self.processes.values():
                     process.terminate()
-                    sys.exit(0)
+                    process.join()
+                sys.exit(0)
             except:
                 print "Unexpected error:"
                 traceback.print_exc(file=sys.stdout)
