@@ -16,7 +16,9 @@
 *.lot
 *.fls
 *.out
+*.pyc
 
 venv
 Project0
 papers
+sshfs
