@@ -2,6 +2,9 @@
 from scapy.all import *
 from multiprocessing import Process, Queue
 import sys, traceback
+import logging
+
+logging.getLogger("scapy").setLevel(logging.ERROR)
 
 class Switch:
     # Dictionary mapping interface names to frame queues
@@ -32,7 +35,7 @@ class Switch:
         try:
             # Sniff specified interface for Ethernet packets and put them
             # into the queue
-            sniff(prn=lambda(packet): self._handle_packet(packet, queue), iface=iface)
+            sniff(prn=lambda(packet): self._handle_packet(packet, queue), iface=iface, store=0)
         except:
             print "Unexpected error:"
             traceback.print_exc(file=sys.stdout)
@@ -57,15 +60,15 @@ class Switch:
                     return
                 # If mapping is found, forward frame
                 print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                return sendp(pkt, iface=dst_iface)
+                return sendp(pkt, iface=dst_iface, verbose=False)
             except KeyError:
-                print "KeyError for address ", eth_header.dst
+                pass
         # Otherwise, broadcast to all interfaces except the one the frame
         # was received on
         for dst_iface in self.queues.keys():
             if dst_iface != iface:
                 print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                sendp(pkt, iface=dst_iface)
+                sendp(pkt, iface=dst_iface, verbose=False)
         return
         
     def switch_forever(self):
@@ -85,6 +88,13 @@ class Switch:
                     #~ # If the interface process is dead, log it
                     #~ if not process.is_alive:
                         #~ print "Interface %s terminated unexpectedly"%(iface)
+            except IndexError:
+                pass
+            except KeyboardInterrupt:
+                print "Keyboard interrupt detected, exiting..."
+                for process in self.processes.values():
+                    process.terminate()
+                    sys.exit(0)
             except:
                 print "Unexpected error:"
                 traceback.print_exc(file=sys.stdout)
