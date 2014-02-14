@@ -2,6 +2,6 @@
 
 from switch import Switch
 
-s = Switch(["eth0", "wlan0"])
+s = Switch(["eth0", "eth1"])
 
 s.switch_forever()

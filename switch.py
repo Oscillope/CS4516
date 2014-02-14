@@ -49,7 +49,7 @@ class Switch:
         # TODO: Handle multiple instances of one address
         if not eth_header.src in self.hosts:
             self.hosts[eth_header.src] = iface
-            print "Found host %s on interface %s " %(eth_header.src, iface)
+            #print "Found host %s on interface %s " %(eth_header.src, iface)
         
         
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
@@ -59,7 +59,7 @@ class Switch:
                 if iface == dst_iface:
                     return
                 # If mapping is found, forward frame
-                print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
+                #print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
                 return sendp(pkt, iface=dst_iface, verbose=False)
             except KeyError:
                 pass
@@ -67,7 +67,7 @@ class Switch:
         # was received on
         for dst_iface in self.queues.keys():
             if dst_iface != iface:
-                print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
+                #print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
                 sendp(pkt, iface=dst_iface, verbose=False)
         return
         
