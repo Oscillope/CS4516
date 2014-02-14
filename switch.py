@@ -32,11 +32,13 @@ class Switch:
         try:
             # Sniff specified interface for Ethernet packets and put them
             # into the queue
-            sniff(filter="ether", prn=self._handle_packet, iface=iface)
+            sniff(prn=lambda(packet, queue): self._handle_packet(packet, queue), iface=iface)
         except:
+            print "Unexpected error:"
+            traceback.print_exc(file=sys.stdout)
             sys.exit(1)
             
-    def _handle_packet(self, packet):
+    def _handle_packet(self, packet, queue):
         queue.put(packet)
         print "Recieved packet!", packet.show()
     
