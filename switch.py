@@ -1,7 +1,6 @@
 # This file will simulate a switch.
 from scapy.all import *
-from threading import Thread
-from Queue import Queue
+from multiprocessing import Process, Queue
 import sys, traceback
 
 class Switch:
@@ -23,7 +22,7 @@ class Switch:
         queue = Queue()
         self.queues[iface] = queue
         # Create process for sniffing interface
-        proc = Thread(target=self._activate_interface, args=(iface,queue))
+        proc = Process(target=self._activate_interface, args=(iface,queue))
         # Add process to list
         self.processes[iface] = proc
         # Start sniffing interface
@@ -39,7 +38,7 @@ class Switch:
             traceback.print_exc(file=sys.stdout)
             
     def _handle_packet(self, packet, queue):
-        queue.put(packet)
+        queue.put(str(packet))
     
     def _forward_packet(self, pkt, iface):
         eth_header = pkt['Ethernet']
@@ -77,7 +76,7 @@ class Switch:
                 for iface, queue in self.queues.items():
                     # Send one frame off each non-empty queue
                     if not queue.empty():
-                        self._forward_packet(queue.get(), iface)
+                        self._forward_packet(Ether(queue.get()), iface)
                 # Join any processes that may have terminated
                 #~ for iface, process in self.processes.items():
                     #~ # Check if any interfaces crashed
