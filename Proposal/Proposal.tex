@@ -33,21 +33,36 @@
 	Additionally, some of these devices depend on external configuration by administrators, incurring additional setup  and maintenance costs.
 	Our approach allows link sharing and broadcast storm mitigation in switched Ethernet networks using a single self-configuring device.
 \section{Approach}
-	Our team proposes the creation of an Ethernet switch with a special cache that stores a hash of each broadcast frame along with the port it was received on.
-	Using this information a switch can identify messages that it has already broadcast and identify loops in the network.
-	To increase efficiency and lower cost, we will use the CRC that is already there as the hash.
-	Because the cost and performance of cache memory will limit the size of a network that can be detected, the device can fall back to broadcasting special frames and identifying loops by looking for those frames.
+	Our team proposes the creation an Ethernet switch that implements flow-based forwarding.
+	Unlike a conventional switch, which uses a forwarding table to determine which interface to forward frames to, our system would create flows based on source IP address (when available) to allow bandwidth sharing over linked interfaces.
+	Even when linked with a conventional switch, our device could utilize multiple links to share bandwidth upstream (towards the linked switch) and have redundancy downstream (from the linked switch).
+	Assuming that the conventional switch would forward to multiple ports simultaneously if it detects the same MAC address multiple times, a link could fail between our switch and the conventional switch the loss of a single frame.
+	As a result, ongoing connections can be maintained throughout a link failure.
 
-	Each CRC stored in the cache will be associated with a time-to-live (TTL).
-	If the cache fills before the TTLs start to expire, the hardware will detect that the network is too large to use this approach and will fall back to broadcasting special frames to detect the network topology.
-        Since we already have the hardware, the switches will still use the caching scheme where they can, because it has the potential for better performance.
+	We propose detection forwarding loops by caching a hash of each frame that is received, and comparing it to incoming frames to detect duplicates.
+	To increase efficiency and limit hardware complexity, we propose using the CRC that is already included in the Ethernet frame as the hash.
+	We propose calculation the necessary size of the cache using estimated time-to-live (TTL) values for the CRCs.
+	The TTL would be a function of the maximum number of hops in a loop, and of the maximum amount of broadcast traffic.
+	These maximums would be practical limitations on the system we are interested in supporting, as opposed to theoretical limitations.
+	In the case that these maximums are exceeded, our device could fall back to simply disabling redundant links when a loop is detected, thereby turning the network into a directed acyclic graph.
+	The looped interface will remain disabled until the state of the network falls within the limits of the cache.
+	
+	When no redundant links exist, the created flows would essentially form a forwarding table.
+	However, when redundant links are formed, the device could use the source IP address of the packet to make flows that determine forwarding strategy for frames.
+	We propose creating flows based on measured bandwidth of interfaces with the goal of uniform utilization.
+	Our device could detect link failures when a previously existing loop no longer exists.
+	In this condition, the device would delete all flows related to that loop.
+	This would cause it to rebuild new flows using the remaining available links.
 
-	If a host can be seen from multiple interfaces at once, we will use the difference in arrival times to prioritize which interface to use. 
-	This will help to prevent accidentally clogging the network by potentially sending frames through as many switches as possible. Once again, this behavior is not exactly very switch-like, but it will potentially save a lot needless network traffic. 
-	It also will be fairly cheap and simple to implement, which at least adheres to the philosophy behind the popularity of switches.
-
-	To determine the feasibility of this approach to intelligent switching the team will first simulate the behavior of a network of intelligent switches in software.
-	If the approach proves to be successful in simulation, the team will attempt to create a basic hardware implementation of an intelligent Ethernet switch.
+	To determine the feasibility of this approach to intelligent switching the team proposes simulation of the behavior of a network of intelligent switches in software.
+	The team would construct a simulated network consisting of virtual machines capable of creating network traffic.
+	The virtual machines will perform a series of predetermined requests through a virtual router to servers both inside and outside of the network.
+	We will also have servers on the virtual network that will receive requests from other hosts on the network as well as foreign hosts outside the network.
+	Several topologies and scenarios would be employed in testing our system to show a range of behaviors in the device.
+	We can also test with two conventional "dumb" switches in the same configuration, to demonstrate that a broadcast storm would occur under these conditions.
+	We propose verification the functionality of our system by confirming that the requests and responses are correct.
+	The effectiveness of the system would be measured by gaging the latency and throughput of the network in forwarding the requests.
+\end{document}
 \section{Benefit}
 	Using this information, intelligent switches will be able to detect and avoid link failures and share bandwidth between redundant links to mitigate bottlenecks.
 	Because switches on this protocol will still be entirely compliant with existing Ethernet networks, this approach will also allow switches that are not able to detect loops to operate in the same network.
