@@ -15,17 +15,10 @@ class FancySwitch(Switch):
     # dict of circular buffers of frames that have been sent out interface x, indexed by interface
     sent_frames = {}
     def _add_interface(self, iface):
-        # Initialize frame queue and map to interface
-        queue = Queue()
-        self.queues[iface] = queue
         # make the circular buffer to check against before broadcasting something
         self.sent_frames[iface] = collections.deque(maxlen=checker_backlog)
-        # Create process for sniffing interface
-        proc = Process(target=self._activate_interface, args=(iface,queue))
-        # Add process to list
-        self.processes[iface] = proc
-        # Start sniffing interface
-        proc.start()
+        # start up interface just like a regular switch
+        super(FancySwitch, self)._add_interface(iface)
 
     def _forward_packet(self, pkt, iface):
         eth_header = pkt['Ethernet']
@@ -56,4 +49,3 @@ class FancySwitch(Switch):
                     self.sent_frames[dst_iface].append(pkt_hash)
                     #print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
                     sendp(pkt, iface=dst_iface, verbose=False)
-        return

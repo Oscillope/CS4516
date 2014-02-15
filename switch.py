@@ -69,7 +69,6 @@ class Switch:
             if dst_iface != iface:
                 #print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
                 sendp(pkt, iface=dst_iface, verbose=False)
-        return
         
     def switch_forever(self):
         # Switch forever
