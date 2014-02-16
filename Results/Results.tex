@@ -3,6 +3,11 @@
 \usepackage[utf8]{inputenc}
 \usepackage[section]{placeins}
 \usepackage{fullpage}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+
+\graphicspath{ {./images/} }
 
 \title{CS 4516 Group \#5: Bandwidth Trunking Using Layer 2 Devices\\Results}
 \author{Jason Rosenman \and Louis Fogel \and Sam Abradi}
@@ -15,5 +20,22 @@ We will compare the results of these metrics to the performance of an unmodified
 Due to the fact that neither switch will be implemented in hardware, our results may be slightly different than a hardware implementation.
 We are looking to compare the behavior of the network at saturation both with and without redundant links.
 We are going to look at the goodput of these situations with and without congestion control.
-
+\begin{figure}[ht]
+	\centering
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\includegraphics[scale=0.4]{self_description.png}
+		\caption{Conventional Switch}
+		\label{fig:stdbcast}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\includegraphics[scale=0.3]{cat_proximity.png}
+		\caption{Smart Switch}
+		\label{fig:newbcast}
+	\end{subfigure}
+	\caption{Percentage of Broadcast Traffic}
+	\label{fig:bcast}
+\end{figure}
 \end{document}
