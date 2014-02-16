@@ -79,6 +79,20 @@
 	The EtherFuse device, is an implementation of a similar system which detects forwarding loops in an Ethernet network \cite{etherfuse}.
 	EtherFuse uses this capability to disable links that create forwarding loops, as opposed to increasing bandwidth between switches.
 	Our device expands on the forwarding loop detection technique that EtherFuse proved effective, but provides functionality that is more useful for administrators of enterprise networks.
+	The EtherFuse proposes a device to be inserted in a network that already uses Spanning Tree Protocol (STP).
+	This device, in addition to detecting loops using a similar method to ours, also keeps track of count-to-infinity conditions that can occur under STP.
+	In the condition of a loop or count-to-infinity, the device would simply sever the connection on which it is placed.
+	This has several disadvantages.
+	First, an EtherFuse device must be purchased for every link that may take part in a loop.
+	Second, the EtherFuse will only sever the connection, as opposed to building on it as we propose to do.
+	As a result, the EtherFuse is heavily reliant on STP in order to function.
+	
+	STP has several shortcomings that make it an undesirable alternative to our solution.
+	Mainly, it requires replacing the entire network infrastructure with STP-capable hardware, which is what we are trying to avoid.
+	In addition, it also does not support bandwidth sharing.
+	EtherFuse also tries to resolve some additional issues brought up by STP\cite{etherfuse}.
+	STP still does not completely prevent the possibility of forwarding loops.
+	It can also result in count-to-infinity conditions in some cases.
 	
 	Another potential solution to the problems our proposed device is intended to solve is the replacement of network hardware with OpenFlow devices.
 	OpenFlow capable switching hardware allows for custom rules for the handling of flows instead of the traditional implementation of Ethernet packet forwarding.
@@ -87,9 +101,11 @@
 	The extended network downtime necessitated by such an extreme infrastructure upgrade would also probably prove unacceptable for enterprise networks.
 	Additionally, providing an OpenFlow device with the same rules that our proposed device would operate on requires manual configuration of the device (something our device would not require).
 	Finally, because flow control rules for OpenFlow are handled in software, an OpenFlow device that automatically prevents new loops from causing broadcast storms would be much slower to handle broadcast frames.
-	Our device aims to be ideal for Enterprise networks by combining the best of both worlds; the robust auto-configuration and cost-effectiveness of EtherFuse with the powerful traffic management of OpenFlow.
+
+	Our device aims to be ideal for enterprise networks by combining the best of both worlds; the robust auto-configuration and cost-effectiveness of EtherFuse with the powerful traffic management of OpenFlow.
 	Enterprise networks need to be cheap, reliable, and easy to maintain.
 	The device we propose solves the problems and limitations of switched Ethernet without compromising the cost-effectiveness of commodity hardware, the reliability of Ethernet, or the auto-configuration of traditional frame forwarding.
+	Our device allows for an easy migration to a more advanced layer 2 infrastructure without requiring a complete system overhaul.
 
 \newpage
 \bibliographystyle{plain}
