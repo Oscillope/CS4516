@@ -59,4 +59,6 @@ A setup with redundant links should perform much better than any other system if
 Clearly single links are unable to provide this service, so they are going to have horrible performance in congestion conditions.
 \section{Congestion Control}
 We have no idea what will happen in this situation.
+The results will come from having hosts send traffic to eachother with an AIMD congestion controll model.
+This may expose flaws in our bandwidth sharing, because links only hover near saturation, so the switch may have a hard time determining that more flows need to be moved over to the other link, because the flows will be too squishy.
 \end{document}
