@@ -20,7 +20,7 @@
 \begin{abstract}
 	Our project aims to address a need for more resilient, higher performance Layer 2 with only one piece of additional hardware by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
 	In addition, we aim to allow switches to distribute bandwidth over multiple interfaces when connected together.
-	This allows us to not only be competitive with systems such as Etherfuse \cite{etherfuse}, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
+	This allows us to not only be competitive with systems such as EtherFuse \cite{etherfuse}, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
 \end{abstract}
 \section{Need}
 	Except for a in few special applications, Ethernet is far and away the most popular choice of link layer protocol.
@@ -68,7 +68,7 @@
 	Several topologies and scenarios would be employed in testing our system to show a range of behaviors in the device.
 	We can also test with two conventional "dumb" switches in the same configuration, to demonstrate that a broadcast storm would occur under these conditions.
 	We propose verification the functionality of our system by confirming that the requests and responses are correct.
-	The effectiveness of the system would be measured by gaging the latency and throughput of the network in forwarding the requests.
+	The effectiveness of the system would be measured by gauging the latency and throughput of the network in forwarding the requests.
 \section{Benefit}
 	Using this information, intelligent switches will be able to detect and avoid link failures and share bandwidth between redundant links to mitigate bottlenecks.
 	Because switches on this protocol will still be entirely compliant with existing Ethernet networks, this approach will also allow switches that are not able to detect loops to operate in the same network.
@@ -76,9 +76,9 @@
 	Since our switches are auto-configuring as well as backwards compatible with existing hardware, implementing them in a network requires a very low installation and maintenance overhead.
 \section{Competition}
 	Previous research has identified methods of detecting and eliminating routing loops in switched Ethernet networks but falls short of network topology detection for link redundancy or bandwidth sharing.
-	The Etherfuse device, is an implementation of a similar system which detects forwarding loops in an Ethernet network \cite{etherfuse}.
-	Etherfuse uses this capability to disable links that create forwarding loops, as opposed to increasing bandwidth between switches.
-	Our device expands on the loop detection technique that Etherfuse proved effective, but provides functionality that is more useful for administrators of enterprise networks.
+	The EtherFuse device, is an implementation of a similar system which detects forwarding loops in an Ethernet network \cite{etherfuse}.
+	EtherFuse uses this capability to disable links that create forwarding loops, as opposed to increasing bandwidth between switches.
+	Our device expands on the forwarding loop detection technique that EtherFuse proved effective, but provides functionality that is more useful for administrators of enterprise networks.
 	
 	Another potential solution to the problems our proposed device is intended to solve is the replacement of network hardware with OpenFlow devices.
 	OpenFlow capable switching hardware allows for custom rules for the handling of flows instead of the traditional implementation of Ethernet packet forwarding.
@@ -88,7 +88,7 @@
   Additionally, providing an OpenFlow device with the same rules that our proposed device would operate on requires manual configuration of the device (something our device would not require).
   Finally, because flow control rules for OpenFlow are handled in software, an OpenFlow device that automatically prevents new loops from causing broadcast storms would be much slower to handle broadcast frames.
 	
-  Our device aims to be ideal for Enterprise networks by combining the best of both worlds; the robust auto-configuration and cost-effectiveness of Etherfuse with the powerful traffic management of OpenFlow.
+  Our device aims to be ideal for Enterprise networks by combining the best of both worlds; the robust auto-configuration and cost-effectiveness of EtherFuse with the powerful traffic management of OpenFlow.
   Enterprise networks need to be cheap, reliable, and easy to maintain.
   The device we propose solves the problems and limitations of switched Ethernet without compromising the cost-effectiveness of commodity hardware, the reliability of Ethernet, or the auto-configuration of traditional frame forwarding.
 
