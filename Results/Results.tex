@@ -22,11 +22,11 @@
 
 \begin{document}
 \maketitle
-In order to measure the effectiveness of our approach, we will collect performance metrics on our switching approach.
-We will compare the results of these metrics to the performance of an unmodified software switch.
-Due to the fact that neither switch will be implemented in hardware, our results may be slightly different than a hardware implementation.
-We are looking to compare the behavior of the network at saturation both with and without redundant links.
-We are going to look at the goodput of these situations with and without congestion control.
+To measure the effectiveness of our approach, we collected performance metrics on networks utilizing our switching approach.
+We compare the results of these metrics to the performance of an unmodified software switch to allow direct comparison between approaches without encountering issues with sources of error that may have been introduced by our simulation.
+Due to the fact that neither switch will be implemented in hardware, our performance results may be slightly different than a hardware implementation because hardware allows for greater parallelism.
+We compare the behavior of the network at saturation both with and without redundant links to show improvements to network behavior when our device is used.
+We also measured and compared at the goodput of the network in these situations with and without congestion control to show the actual practical effect of our device on end hosts in the network.
 \begin{figure}[ht]
 	\centering
 	\begin{subfigure}[b]{0.4\textwidth}
@@ -46,18 +46,18 @@ We are going to look at the goodput of these situations with and without congest
 	\label{fig:bcast}
 \end{figure}
 
-Another useful metric is the percentage of broadcast traffic.
+We also measured the percentage of total network traffic that Broadcast frames comprised.
 Normally (in a star network with conventional switches), nearly all of the traffic will start as broadcast traffic during the auto-configuration period.
 The amount of broadcast traffic will then drop down to a noise-floor level.
-If the network has a loop in it, the amount of broadcast traffic will not drop-off because the network will start a broadcast storm as a result of the forwarding loop.
-We are looking for drop-off behavior in our switch, even in a graph network.
+If the network has a loop in it, the amount of broadcast traffic will not drop-off significantly because the network will start a broadcast storm as a result of the forwarding loop.
+Our device exhibits the same drop-off behavior even in a graph network because it filters broadcast packets out of forwarding loops, preventing a broadcast storm from occurring.
 
 \section{Congestion Conditions}
-We expect that situations where the network is at saturation will show the biggest difference in performance between architectures.
-A setup with redundant links should perform much better than any other system if there is one flow causing all or most of the congestion, because all of the other traffic will default to the other link.
-Clearly single links are unable to provide this service, so they are going to have horrible performance in congestion conditions.
+Situations where the network is at saturation show the most significant difference in performance between architectures.
+Setups with redundant links perform much better than any other system when there is one flow causing all or most of the congestion, because all of the other traffic defaults to the other link.
+Single links are unable to provide this service, and as a result they provide markedly worse performance in congestion conditions.
 \section{Congestion Control}
-We have no idea what will happen in this situation.
-The results will come from having hosts send traffic to each other with an AIMD congestion control model.
-This may expose flaws in our bandwidth sharing, because links only hover near saturation, so the switch may have a hard time determining that more flows need to be moved over to the other link, because the flows will be too squishy.
+We do not yet know what will happen in this situation.
+The results will come from having hosts send traffic to each other with the default TCP congestion control mechanism in Linux 3.12.9.
+Testing with congestion control may expose flaws in our bandwidth sharing technique, because links only hover near saturation, so the switch may have a hard time determining that more flows need to be moved over to the other link, because the flows will be too interdependent.
 \end{document}
