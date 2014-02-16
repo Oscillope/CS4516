@@ -10,6 +10,8 @@
 *.toc
 *.log
 *.dvi
+*.bbl
+*.blg
 *.fdb*
 *.swp
 *.lof

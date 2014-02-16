@@ -28,7 +28,6 @@ class FancySwitch(Switch):
             self.hosts[eth_header.src] = iface
             #print "Found host %s on interface %s " %(eth_header.src, iface)
         
-        
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
         if eth_header.dst != "ff:ff:ff:ff:ff:ff":
             try:
