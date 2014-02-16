@@ -38,4 +38,9 @@ We are going to look at the goodput of these situations with and without congest
 	\caption{Percentage of Broadcast Traffic}
 	\label{fig:bcast}
 \end{figure}
+
+\section{Congestion Conditions}
+We expect that situations where the network is at saturation will show the biggest difference in performance between architectures. A setup with redundant links should perform much better than any other system if there is one flow causing all or most of the congestion, because all of the other traffic will default to the other link. Clearly single links are unable to provide this service, so they are going to have horrible performance in congestion conditions.
+\section{Congestion Controll}
+We have no idea what will happen in this situation.
 \end{document}
