@@ -78,21 +78,23 @@
 	Previous research has identified methods of detecting and eliminating routing loops in switched Ethernet networks but falls short of network topology detection for link redundancy or bandwidth sharing.
 	The EtherFuse device, is an implementation of a similar system which detects forwarding loops in an Ethernet network \cite{etherfuse}.
 	EtherFuse uses this capability to disable links that create forwarding loops, as opposed to increasing bandwidth between switches.
-	Our device expands on the forwarding loop detection technique that EtherFuse proved effective, but provides functionality that is more useful for administrators of enterprise networks.
-	The EtherFuse proposes a device to be inserted in a network that already uses Spanning Tree Protocol (STP).
-	This device, in addition to detecting loops using a similar method to ours, also keeps track of count-to-infinity conditions that can occur under STP.
+	Our device expands on the forwarding loop detection technique that EtherFuse proved effective, but provides additional functionality that is useful for administrators of enterprise networks.
+	EtherFuse is only compatible with networks that already support Spanning Tree Protocol (STP).
+	This device, in addition to detecting loops, also keeps track of count-to-infinity conditions that can occur under STP.
 	In the condition of a loop or count-to-infinity, the device would simply sever the connection on which it is placed.
 	This has several disadvantages.
 	First, an EtherFuse device must be purchased for every link that may take part in a loop.
-	Second, the EtherFuse will only sever the connection, as opposed to building on it as we propose to do.
+	Second, the EtherFuse will only sever the connection, as opposed to building on it as we propose.
 	As a result, the EtherFuse is heavily reliant on STP in order to function.
 	
 	STP has several shortcomings that make it an undesirable alternative to our solution.
 	Mainly, it requires replacing the entire network infrastructure with STP-capable hardware, which is what we are trying to avoid.
 	In addition, it also does not support bandwidth sharing.
+	% TODO Actually specifically mention the issues that EtherFuse identifies with STP
 	EtherFuse also tries to resolve some additional issues brought up by STP\cite{etherfuse}.
 	STP still does not completely prevent the possibility of forwarding loops.
 	It can also result in count-to-infinity conditions in some cases.
+	% TODO reiterate that our approach is immune to these problems
 	
 	Another potential solution to the problems our proposed device is intended to solve is the replacement of network hardware with OpenFlow devices.
 	OpenFlow capable switching hardware allows for custom rules for the handling of flows instead of the traditional implementation of Ethernet packet forwarding.
