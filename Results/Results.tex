@@ -7,6 +7,8 @@
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{hyperref}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.8}
 
 \hypersetup{colorlinks=true,
 			urlcolor=blue,
@@ -22,42 +24,143 @@
 
 \begin{document}
 \maketitle
-To measure the effectiveness of our approach, we collected performance metrics on networks utilizing our switching approach.
-We compare the results of these metrics to the performance of an unmodified software switch to allow direct comparison between approaches without encountering issues with sources of error that may have been introduced by our simulation.
-Due to the fact that neither switch will be implemented in hardware, our performance results may be slightly different than a hardware implementation because hardware allows for greater parallelism.
-We compare the behavior of the network at saturation both with and without redundant links to show improvements to network behavior when our device is used.
+We collected performance metrics on networks utilizing our switching approach to measure its effectiveness.
+We also measured the performance of an unmodified software switch to allow direct comparison between approaches without encountering issues with sources of error that may have been introduced by our simulation.
+Due to the fact that neither switch will be implemented in hardware, our performance results may be slightly different because hardware allows for greater parallelism.
+We measured the performance of the network when a link is at saturation to determine the benefit that a redundant bandwidth-sharing link is able to provide.
 We also measured and compared at the goodput of the network in these situations with and without congestion control to show the actual practical effect of our device on end hosts in the network.
+\begin{table}[ht]
+	\centering
+	\caption{Goodput}
+	\label{tab:goodput}
+	% TODO: Add more rows to table for with and without congestion control. Have switch headers span rows.
+	\begin{tabular}{|c|c|c|}
+		\hline
+		& With Loop	& Without Loop \\
+		\hline
+		Conventional Switch	&	& \\
+		\hline
+		Smart Switch				&	& \\
+		\hline
+	\end{tabular}
+\end{table}
+
 \begin{figure}[ht]
 	\centering
 	\begin{subfigure}[b]{0.4\textwidth}
 		\centering
-		\includegraphics[scale=0.4]{self_description.png}
-		\caption{Conventional Switch}
+		\begin{tikzpicture}
+		\begin{axis} [
+			title=Conventional Switch,
+			xlabel=Time (s),
+			ylabel=\% Broadcast Traffic,
+		]
+% 		\addplot[blue] table {}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{}
 		\label{fig:stdbcast}
 	\end{subfigure}
 	\hfill
 	\begin{subfigure}[b]{0.4\textwidth}
 		\centering
-		\includegraphics[scale=0.3]{cat_proximity.png}
-		\caption{Smart Switch}
-		\label{fig:newbcast}
+		\begin{tikzpicture}
+		\begin{axis} [
+			title=Smart Switch,
+			xlabel=Time (s),
+			ylabel=\% Broadcast Traffic,
+		]
+% 		\addplot[blue] table {}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{}
+		\label{fig:smtbcast}
 	\end{subfigure}
 	\caption{Percentage of Broadcast Traffic}
 	\label{fig:bcast}
 \end{figure}
 
-We also measured the percentage of total network traffic that Broadcast frames comprised.
+We also measured the percentage of broadcast frames from total network traffic.
 Normally (in a star network with conventional switches), nearly all of the traffic will start as broadcast traffic during the auto-configuration period.
 The amount of broadcast traffic will then drop down to a noise-floor level.
-If the network has a loop in it, the amount of broadcast traffic will not drop-off significantly because the network will start a broadcast storm as a result of the forwarding loop.
+If the network has a loop in it, the amount of broadcast traffic will not drop off significantly because the network will start a broadcast storm as a result of the forwarding loop.
 Our device exhibits the same drop-off behavior even in a graph network because it filters broadcast packets out of forwarding loops, preventing a broadcast storm from occurring.
 
 \section{Congestion Conditions}
 Situations where the network is at saturation show the most significant difference in performance between architectures.
 Setups with redundant links perform much better than any other system when there is one flow causing all or most of the congestion, because all of the other traffic defaults to the other link.
 Single links are unable to provide this service, and as a result they provide markedly worse performance in congestion conditions.
+\begin{figure}[ht]
+	\centering
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\begin{tikzpicture}
+		\begin{axis} [
+			title=Conventional Switch,
+			xlabel=Time (s),
+			ylabel=Packet Loss (\%),
+		]
+% 		\addplot[blue] table {}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{}
+		\label{fig:stdbcast}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\begin{tikzpicture}
+		\begin{axis} [
+			title=Smart Switch,
+			xlabel=Time (s),
+			ylabel=Packet Loss (\%),
+		]
+% 		\addplot[blue] table {}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{}
+		\label{fig:smtbcast}
+	\end{subfigure}
+	\caption{Packet Loss}
+	\label{fig:bcast}
+\end{figure}
 \section{Congestion Control}
 We do not yet know what will happen in this situation.
 The results will come from having hosts send traffic to each other with the default TCP congestion control mechanism in Linux 3.12.9.
 Testing with congestion control may expose flaws in our bandwidth sharing technique, because links only hover near saturation, so the switch may have a hard time determining that more flows need to be moved over to the other link, because the flows will be too interdependent.
+
+\begin{figure}[ht]
+	\centering
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\begin{tikzpicture}
+		\begin{axis} [
+			title=Conventional Switch,
+			xlabel=Time (s),
+			ylabel=Response Time (ms),
+		]
+% 		\addplot[blue] table {}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{}
+		\label{fig:stdbcast}
+	\end{subfigure}
+	\hfill
+	\begin{subfigure}[b]{0.4\textwidth}
+		\centering
+		\begin{tikzpicture}
+		\begin{axis} [
+			title=Smart Switch,
+			xlabel=Time (s),
+			ylabel=Response Time (ms),
+		]
+% 		\addplot[blue] table {}
+		\end{axis}
+		\end{tikzpicture}
+		\caption{}
+		\label{fig:smtbcast}
+	\end{subfigure}
+	\caption{Response Time}
+	\label{fig:bcast}
+\end{figure}
 \end{document}
