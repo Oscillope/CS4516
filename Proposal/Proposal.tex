@@ -3,6 +3,7 @@
 \usepackage[utf8]{inputenc}
 \usepackage[section]{placeins}
 \usepackage{fullpage}
+\usepackage{multicol}
 \usepackage{hyperref}
 
 \hypersetup{colorlinks=true,
@@ -22,6 +23,7 @@
 	In addition, we aim to allow switches to distribute bandwidth over multiple interfaces when connected together.
 	This allows us to not only be competitive with systems such as EtherFuse \cite{etherfuse}, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
 \end{abstract}
+\begin{multicols}{2}
 \section{Need}
 	Except for a in few special applications, Ethernet is far and away the most popular choice of link layer protocol.
 	In consumer and enterprise level networks there are no real viable alternatives.
@@ -120,7 +122,7 @@
 	Enterprise networks need to be cheap, reliable, and easy to maintain.
 	The device we propose solves the problems and limitations of switched Ethernet without compromising the cost-effectiveness of commodity hardware, the reliability of Ethernet, or the auto-configuration of traditional frame forwarding.
 	Our device allows for an easy migration to a more advanced layer 2 infrastructure without requiring a complete system overhaul.
-
+\end{multicols}
 \newpage
 \bibliographystyle{plain}
 \bibliography{Bibliography}
