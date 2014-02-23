@@ -70,14 +70,35 @@
 	We propose verification of the functionality of our system by confirming that the requests and responses are correct.
 	The effectiveness of the system would be measured by gauging the latency and throughput of the network in forwarding the requests.
 \section{Benefit}
-	Using this information, intelligent switches will be able to detect and avoid link failures and share bandwidth between redundant links to mitigate bottlenecks.
-	Because switches on this protocol will still be entirely compliant with existing Ethernet networks, this approach will also allow switches that are not able to detect loops to operate in the same network.
+  First and foremost, intelligent switches will detect and prevent broadcast storms in any forwarding loop they are a part of.
+	Additionally, intelligent switches will be able to detect and avoid link failures and share bandwidth between redundant links to mitigate bottlenecks using the additional information they collect.
+	Because switches implementing the behavior we describe will still be entirely compliant with existing Ethernet networks, this approach will also allow switches that are not able to detect loops to operate in the same network.
 	If non-intelligent switches are used in combination with at least one intelligent switch and the network is small enough to allow CRC caching, our hardware should still be able to share bandwidth by essentially tricking the non-intelligent switch into thinking that it is two switches attached to separate ports.
 	Since our switches are auto-configuring as well as backwards compatible with existing hardware, implementing them in a network requires a very low installation and maintenance overhead.
+	Additionally, because no configuration is necessary and backward compatibility is ensured, our device can be installed on an operational network with little (if any) required downtime.
+	
+	We believe our device would have appeal to administrators of small to medium sized enterprise networks.
+	When limited IT staff are available, the auto-configuration and robustness of our device are desirable.
+	Additionally, the backwards compatibility should keep cost of integration with existing networks low.
+	We believe there is a market for robust networks without the headaches of more complex solutions that are better suited for large networks and datacenters.
 \section{Competition}
-	Previous research has identified methods of detecting and eliminating routing loops in switched Ethernet networks but falls short of network topology detection for link redundancy or bandwidth sharing.
-	The EtherFuse device, is an implementation of a similar system which detects forwarding loops in an Ethernet network \cite{etherfuse}.
-	EtherFuse uses this capability to disable links that create forwarding loops, as opposed to increasing bandwidth between switches.
+	Previous research has identified methods of detecting and eliminating routing loops in switched Ethernet networks but falls short of automatic network topology detection for link redundancy or bandwidth sharing.
+	Many proposed solutions require replacement of all network infrastructure, which is prohibitively expensive.
+	Additionally, some require manual configuration of the network, costing time and allowing for misconfiguration that could cause network outages.
+	
+	One proposed solution to the problem of forwarding loops in Layer 2 networks is Spanning Tree Protocol (STP).
+	STP works by sending special frames, known as Bridge Protocol Data Units (BPDUs), to identify the topology of the network and identify a spanning tree and disables all connections except those in the spanning tree.
+	STP has several shortcomings that make it an undesirable alternative to our solution.
+	Mainly, it requires replacing the entire network infrastructure with STP-capable hardware, which is expensive and necessitates significant network downtime.
+	In addition, STP works by disabling redundant connections, and as a result can not support bandwidth sharing.
+	Because our system does not disable links (except when overloaded), it is able to send traffic to the same host over different connections, preventing bottlenecks from forming in the forwarding graph.
+  In some network topologies, the use of STP can result in count-to-infinity conditions between hosts, causing some frames to become unforwardable.
+  Our device is not dependent on a hop count and is therefore immune to the count-to-infinity problem.
+	Because spanning tree detection in STP is dependent on the ability of switches to detect BPDUs, it does not completely prevent the possibility of forwarding loops.
+	
+	Our device builds in part on the design of a similar system which detects forwarding loops in an Ethernet network using STP.
+	The inventors of this system named it "EtherFuse" as an analogy to current limiting electrical fuses.\cite{etherfuse}.
+	EtherFuse uses its capability to detect forwarding loops to disable links that create forwarding loops, as opposed to increasing bandwidth between switches.
 	Our device expands on the forwarding loop detection technique that EtherFuse proved effective, but provides additional functionality that is useful for administrators of enterprise networks.
 	EtherFuse is only compatible with networks that already support Spanning Tree Protocol (STP).
 	This device, in addition to detecting loops, also keeps track of count-to-infinity conditions that can occur under STP.
@@ -86,15 +107,6 @@
 	First, an EtherFuse device must be purchased for every link that may take part in a loop.
 	Second, the EtherFuse will only sever the connection, as opposed to building on it as we propose.
 	As a result, the EtherFuse is heavily reliant on STP in order to function.
-	
-	STP has several shortcomings that make it an undesirable alternative to our solution.
-	Mainly, it requires replacing the entire network infrastructure with STP-capable hardware, which is what we are trying to avoid.
-	In addition, it also does not support bandwidth sharing.
-	% TODO Actually specifically mention the issues that EtherFuse identifies with STP
-	EtherFuse also tries to resolve some additional issues brought up by STP\cite{etherfuse}.
-	STP still does not completely prevent the possibility of forwarding loops.
-	It can also result in count-to-infinity conditions in some cases.
-	% TODO reiterate that our approach is immune to these problems
 	
 	Another potential solution to the problems our proposed device is intended to solve is the replacement of network hardware with OpenFlow devices.
 	OpenFlow capable switching hardware allows for custom rules for the handling of flows instead of the traditional implementation of Ethernet packet forwarding \cite{openflow}.
