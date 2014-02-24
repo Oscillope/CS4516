@@ -22,6 +22,33 @@
 
 \begin{document}
 \maketitle
+% Conclusion: Students should write a conclusion for the work, summarizing the contributions, the impact, and potential for follow-on work. This section will likely be at least half a page. 
+\section{Findings}
+  Our intelligent switch implementation was able to successfully detect forwarding loops and prevent broadcast storms from occurring.
+  We successfully met our goal of implementing a switch that is auto-configuring; the device does not need any configuration beyond being connected to the network.
+  Our device was able to respond quickly to link failures, preventing significant packet loss.
+  In addition, when loops were detected, the switch was able to create flows that would allow bandwidth to be shared over multiple links.
+  This confirms that the behavior we describe creates an auto-configuring Ethernet switch capable of using its redundant links instead of simply disabling them.
+  We believe that no such device has been presented before.
+  
+  Allowing bandwidth sharing prevents bottlenecks from forming in the forwarding path by balancing the load distributed between paths.
+  This behavior is a significant improvement over STP, which does not share bandwidth, because STP may find a spanning tree that causes the majority of traffic to flow through a single switch.
+  
+  Detecting link failures and updating the forwarding table accordingly allows a significant performance advantage over approaches like STP, which would require a new spanning tree to be detected.
+  Fast automatic response to link failure is a highly desirable attribute for a Layer 2 networking device because it prevents any significant downtime for the network, and does not require immediate action by network administrators.
+  With our device when a link can be brought back up the loop will be detected immediately.
+  No configuration will be necessary to return the network back to its original state.
+\section{Future Work}
+  The main limitation of our study was the significantly decreased performance of simulating our switch entirely in software.
+  Future work could explore implementing the behaviors we describe on an OpenFlow switching device.
+  This would allow much more realistic simulations of performance by reducing the number of artificial bottlenecks.
+  Ideally, a full hardware implementation of the device would be created on a rapid prototyping platform such as the NetFPGA device.
+  Hardware implementations would allow for much greater parallelism, potentially even allowing multiple broadcast frames to be handled simultaneously.
+  A hardware implementation of our device would use hash tables to match repeated broadcast frame CRCs in constant time.
+  We believe that if our device were effectively implemented in hardware, the latency issues would become negligible and the performance would be more comparable to regular "dumb" Ethernet switches.
 
-
+  In this paper we discuss the behavior of only one intelligent switch in combination with multiple "dumb" switches.
+  Future work could explore the benefits of using multiple intelligent switches to allow coordination.
+  Coordination between intelligent switches would allow for more complex bandwidth sharing techniques that would allow for minimizing latency in addition to avoiding congestion.
+  Coordination would also allow preventing packet loss in duplex when a link failure is detected.
 \end{document}
