@@ -18,7 +18,7 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-	Our project aims to address a need for more resilient, higher performance Layer 2 with only one piece of additional hardware by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
+	Our project aims to address a need for more resilient, higher performance layer 2 with only one piece of additional hardware by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
 	In addition, we aim to allow switches to distribute bandwidth over multiple interfaces when connected together.
 	This allows us to not only be competitive with systems such as EtherFuse \cite{etherfuse}, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
 \end{abstract}
@@ -86,7 +86,7 @@
 	Many proposed solutions require replacement of all network infrastructure, which is prohibitively expensive.
 	Additionally, some require manual configuration of the network, costing time and allowing for misconfiguration that could cause network outages.
 	
-	One proposed solution to the problem of forwarding loops in Layer 2 networks is Spanning Tree Protocol (STP).
+	One proposed solution to the problem of forwarding loops in layer 2 networks is Spanning Tree Protocol (STP).
 	STP works by sending special frames, known as Bridge Protocol Data Units (BPDUs), to identify the topology of the network and identify a spanning tree and disables all connections except those in the spanning tree.
 	STP has several shortcomings that make it an undesirable alternative to our solution.
 	Mainly, it requires replacing the entire network infrastructure with STP-capable hardware, which is expensive and necessitates significant network downtime.
@@ -97,7 +97,7 @@
 	Because spanning tree detection in STP is dependent on the ability of switches to detect BPDUs, it does not completely prevent the possibility of forwarding loops.
 	
 	Our device builds in part on the design of a similar system which detects forwarding loops in an Ethernet network using STP.
-	The inventors of this system named it "EtherFuse" as an analogy to current limiting electrical fuses.\cite{etherfuse}.
+	The inventors of this system named it "EtherFuse" as an analogy to current limiting electrical fuses \cite{etherfuse}.
 	EtherFuse uses its capability to detect forwarding loops to disable links that create forwarding loops, as opposed to increasing bandwidth between switches.
 	Our device expands on the forwarding loop detection technique that EtherFuse proved effective, but provides additional functionality that is useful for administrators of enterprise networks.
 	EtherFuse is only compatible with networks that already support Spanning Tree Protocol (STP).
@@ -106,7 +106,6 @@
 	This has several disadvantages.
 	First, an EtherFuse device must be purchased for every link that may take part in a loop.
 	Second, the EtherFuse will only sever the connection, as opposed to building on it as we propose.
-	As a result, the EtherFuse is heavily reliant on STP in order to function.
 	
 	Another potential solution to the problems our proposed device is intended to solve is the replacement of network hardware with OpenFlow devices.
 	OpenFlow capable switching hardware allows for custom rules for the handling of flows instead of the traditional implementation of Ethernet packet forwarding \cite{openflow}.
