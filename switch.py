@@ -6,7 +6,7 @@ import logging
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
 
-class Switch:
+class Switch(object):
     # Dictionary mapping interface names to frame queues
     queues = {}
     # Mapping of interface names to active interface processes
