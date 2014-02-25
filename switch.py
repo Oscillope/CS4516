@@ -35,7 +35,8 @@ class Switch(object):
         try:
             # Sniff specified interface for Ethernet packets and put them
             # into the queue
-            sniff(prn=lambda(packet): self._handle_packet(packet, queue), iface=iface, store=0)
+            conf.iface = iface
+            sniff(prn=lambda(packet): self._handle_packet(packet, queue), store=0)
         except:
             print "Unexpected error:"
             traceback.print_exc(file=sys.stdout)
@@ -44,12 +45,13 @@ class Switch(object):
         queue.put(str(packet))
     
     def _forward_packet(self, pkt, iface):
+        #print "Forwarding packet!"
         eth_header = pkt['Ethernet']
         # Map source port to interface
         # TODO: Handle multiple instances of one address
         if not eth_header.src in self.hosts:
             self.hosts[eth_header.src] = iface
-            #print "Found host %s on interface %s " %(eth_header.src, iface)
+            print "Found host %s on interface %s " %(eth_header.src, iface)
         
         
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
@@ -68,7 +70,7 @@ class Switch(object):
         for dst_iface in self.queues.keys():
             if dst_iface != iface:
                 #print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                sendp(pkt, iface=dst_iface, verbose=False)
+                return sendp(pkt, iface=dst_iface, verbose=False)
         
     def switch_forever(self):
         # Switch forever
