@@ -1,4 +1,5 @@
 # This file will simulate a switch.
+import pcapy
 from scapy.all import *
 from multiprocessing import Process, Queue
 import sys, traceback
@@ -32,17 +33,19 @@ class Switch(object):
         proc.start()
 
     def _activate_interface(self, iface, queue):
+        self.queue = queue
         try:
             # Sniff specified interface for Ethernet packets and put them
             # into the queue
-            conf.iface = iface
-            sniff(prn=lambda(packet): self._handle_packet(packet, queue), store=0)
+            #sniff(prn=lambda(packet): self._handle_packet(packet, queue), store=0)
+            sniffer = pcapy.open_live(iface, 1024, True, 100)
+            sniffer.loop(-1, self._handle_packet)
         except:
             print "Unexpected error:"
             traceback.print_exc(file=sys.stdout)
             
-    def _handle_packet(self, packet, queue):
-        queue.put(str(packet))
+    def _handle_packet(self, hdr, frame):
+        self.queue.put(str(frame))
     
     def _forward_packet(self, pkt, iface):
         #print "Forwarding packet!"
