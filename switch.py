@@ -7,12 +7,51 @@ import logging
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
 
+class Interface:
+    incoming = None
+    outgoing = None
+    name = None
+    process = None
+    
+    def __init__(self, name):
+        self.incoming = Queue()
+        self.outgoing = Queue()
+        self.name = name
+        self.process = Process(target=self.run)
+
+    def activate(self):
+        self.process.start()
+
+    def deactivate(self):
+        try:
+            self.process.terminate()
+            self.process.join()
+        except:
+            print "Problem deactivating interface:"
+            traceback.print_exc(file=sys.stdout)
+
+    def _handle_packet(self, hdr, frame):
+        self.incoming.put(str(frame))
+
+    def run(self):
+        try:
+            sniffer = pcapy.open_live(self.name, 1024, True, 100)
+            sniffer.loop(-1, self._handle_packet)
+            # TODO: send outgoing packets waiting in queue
+            # sendp(pkt, iface=dst_iface, verbose=False)
+        except KeyboardInterrupt:
+            sys.exit(0)
+        except:
+            print "Unexpected error:"
+            traceback.print_exc(file=sys.stdout)
+        
+    def __str__(self):
+        return self.name
+
 class Switch(object):
-    # Dictionary mapping interface names to frame queues
-    queues = {}
-    # Mapping of interface names to active interface processes
-    processes = {}
-    # Dictionary mapping destinations to interfaces
+    # List of interface objects
+    interfaces = []
+    # Dictionary mapping hosts to interface objects
     hosts = {}
 
     def __init__(self, iface_list=None):
@@ -21,31 +60,10 @@ class Switch(object):
         for iface in iface_list:
             self._add_interface(iface)
 
-    def _add_interface(self, iface):
-        # Initialize frame queue and map to interface
-        queue = Queue()
-        self.queues[iface] = queue
-        # Create process for sniffing interface
-        proc = Process(target=self._activate_interface, args=(iface,queue))
-        # Add process to list
-        self.processes[iface] = proc
-        # Start sniffing interface
-        proc.start()
-
-    def _activate_interface(self, iface, queue):
-        self.queue = queue
-        try:
-            # Sniff specified interface for Ethernet packets and put them
-            # into the queue
-            #sniff(prn=lambda(packet): self._handle_packet(packet, queue), store=0)
-            sniffer = pcapy.open_live(iface, 1024, True, 100)
-            sniffer.loop(-1, self._handle_packet)
-        except:
-            print "Unexpected error:"
-            traceback.print_exc(file=sys.stdout)
-            
-    def _handle_packet(self, hdr, frame):
-        self.queue.put(str(frame))
+    def _add_interface(self, iface_name):
+        # Create object for interface info
+        interface = Interface(iface_name)
+        self.interfaces.append(interface)
     
     def _forward_packet(self, pkt, iface):
         #print "Forwarding packet!"
@@ -63,24 +81,30 @@ class Switch(object):
                 dst_iface = self.hosts[eth_header.dst]
                 if iface == dst_iface:
                     return
-                # If mapping is found, forward frame
-                #print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                return sendp(pkt, iface=dst_iface, verbose=False)
+                # If mapping is found, forward frame on interface
+                print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
+                dst_iface.outgoing.put(pkt)
+                # This process is now done with this packet
+                return
             except KeyError:
                 pass
         # Otherwise, broadcast to all interfaces except the one the frame
         # was received on
-        for dst_iface in self.queues.keys():
+        for dst_iface in self.interfaces:
             if dst_iface != iface:
-                #print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                return sendp(pkt, iface=dst_iface, verbose=False)
-        
+                print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
+                dst_iface.outgoing.put(str(pkt))
+    
     def switch_forever(self):
+        # Start up interfaces
+        for iface in self.interfaces:
+            iface.activate()
         # Switch forever
         while True:
             try:
                 # For each interface, send a frame off the queue
-                for iface, queue in self.queues.items():
+                for iface in self.interfaces:
+                    queue = iface.incoming
                     # Send one frame off each non-empty queue
                     if not queue.empty():
                         self._forward_packet(Ether(queue.get()), iface)
@@ -88,9 +112,8 @@ class Switch(object):
                 pass
             except KeyboardInterrupt:
                 print "Keyboard interrupt detected, exiting..."
-                for process in self.processes.values():
-                    process.terminate()
-                    process.join()
+                for iface in self.interfaces:
+                    iface.deactivate()
                 sys.exit(0)
             except:
                 print "Unexpected error:"
