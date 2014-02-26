@@ -7,7 +7,7 @@ import logging
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
 
-class Interface:
+class Interface(object):
     incoming = None
     outgoing = None
     name = None
