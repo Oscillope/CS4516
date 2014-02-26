@@ -64,6 +64,7 @@ class Switch(object):
         # Create object for interface info
         interface = Interface(iface_name)
         self.interfaces.append(interface)
+        return interface
     
     def _forward_packet(self, pkt, iface):
         #print "Forwarding packet!"
@@ -83,7 +84,7 @@ class Switch(object):
                     return
                 # If mapping is found, forward frame on interface
                 print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                dst_iface.outgoing.put(pkt)
+                dst_iface.outgoing.put(str(pkt))
                 # This process is now done with this packet
                 return
             except KeyError:
