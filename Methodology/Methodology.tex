@@ -1,22 +1,4 @@
-\documentclass{article}
-\usepackage[T1]{fontenc}
-\usepackage[utf8]{inputenc}
-\usepackage[section]{placeins}
-\usepackage[cm]{fullpage}
-\usepackage{hyperref}
-
-\hypersetup{colorlinks=true,
-			urlcolor=blue,
-			linktoc=all,
-			linkcolor=black,
-			citecolor=black}
-
-\title{CS 4516 Group \#5: Bandwidth Trunking Using Layer 2 Devices\\Methodology}
-\author{Jason Rosenman \and Louis Fogel \and Sam Abradi}
-\date{}
-
-\begin{document}
-\maketitle
+\section{Methodology}
 	Our team will create an Ethernet switch that implements flow-based forwarding.
 	Unlike a conventional switch, which uses a forwarding table to determine which interface to forward frames, our system will create flows based on source IP address (when available) to allow bandwidth sharing over linked interfaces.
 	Even when linked with a conventional switch, our device can utilize multiple links to share bandwidth upstream (towards the linked switch) and have redundancy downstream (from the linked switch).
@@ -56,4 +38,3 @@
 	We can also test with two conventional switches in the same configuration, to demonstrate that a broadcast storm would occur under these conditions.
 	Next, we will move to a topology involving multiple smart switches connected to each other.
 	Our final test will simulate a loop topology that exceeds the capacity of the circular buffer to ensure that the switch can still fall back to disabling loop links even if it cannot keep track of the entire network topology.
-\end{document}

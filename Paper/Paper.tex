@@ -1,0 +1,38 @@
+\documentclass{article}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage[section]{placeins}
+\usepackage{fullpage}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{caption}
+\usepackage{subcaption}
+\usepackage{pgfplots}
+\pgfplotsset{compat=1.8}
+
+\graphicspath{ {./images/} }
+\hypersetup{colorlinks=true,
+			urlcolor=blue,
+			linktoc=all,
+			linkcolor=black,
+			citecolor=black}
+
+\title{Bandwidth Trunking Using Layer 2 Devices}
+\author{Jason Rosenman \and Louis Fogel \and Sam Abradi}
+\date{}
+
+\begin{document}
+\maketitle
+\begin{abstract}
+	Our project aims to address a need for more resilient, higher performance layer 2 with only one piece of additional hardware by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
+	In addition, we aim to allow switches to distribute bandwidth over multiple interfaces when connected together.
+	This allows us to not only be competitive with systems such as EtherFuse \cite{etherfuse}, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
+\end{abstract}
+\input{../Introduction/Introduction.tex}
+\input{../Methodology/Methodology.tex}
+\input{../Results/Results.tex}
+\input{../Conclusion/Conclusion.tex}
+\newpage
+\bibliographystyle{plain}
+\bibliography{Bibliography}
+\end{document}
