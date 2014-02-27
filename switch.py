@@ -2,8 +2,8 @@
 import pcapy
 from scapy.all import *
 from multiprocessing import Process, Queue
-import sys, traceback
-import logging
+from threading import Thread, RLock
+import sys, traceback, logging
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
 
@@ -30,15 +30,28 @@ class Interface(object):
             print "Problem deactivating interface:"
             traceback.print_exc(file=sys.stdout)
 
+    def _write_packet(self, pkt):
+        # Wait for interface to be free, then lock it to write
+        if self._iface_lock.acquire(blocking=1):
+            sendp(pkt, iface=self.name, verbose=False)
+            self._iface_lock.release()
+
     def _handle_packet(self, hdr, frame):
-        self.incoming.put(str(frame))
+        # If not writing, then put frame in queue, otherwise drop it
+        if self._iface_lock.acquire(blocking=0):
+            self.incoming.put(str(frame))
+            self._iface_lock.release()
 
     def run(self):
         try:
             sniffer = pcapy.open_live(self.name, 1024, True, 100)
-            sniffer.loop(-1, self._handle_packet)
+            self._listener = Thread(target=sniffer.loop, args=(-1, self._handle_packet))
+            self._iface_lock = RLock()
+            self._listener.start()
             # TODO: send outgoing packets waiting in queue
-            # sendp(pkt, iface=dst_iface, verbose=False)
+            while True:
+                if not self.outgoing.empty():
+                    self._write_packet(Ether(self.outgoing.get()))
         except KeyboardInterrupt:
             sys.exit(0)
         except:
