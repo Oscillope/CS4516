@@ -1,4 +1,4 @@
-#!/usr/bin/env python2
+#!/usr/bin/env python
 
 from switch import Switch
 from fancy_switch import FancySwitch
@@ -6,6 +6,7 @@ from fancy_switch import FancySwitch
 import sys
 
 dev_string = ["eth0", "eth1"]
+#dev_string = ["eth0", "eth1", "eth2", "eth3"]
 
 if len(sys.argv) == 1:
     s = Switch(dev_string)
