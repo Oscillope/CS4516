@@ -3,7 +3,7 @@ import pcapy
 from scapy.all import *
 from threading import Thread, RLock, Semaphore
 from Queue import Queue
-import sys, traceback, logging
+import sys, traceback, logging, time
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
 
@@ -14,11 +14,12 @@ class Interface(object):
     process = None
     
     def __init__(self, name):
-        self.incoming = Queue(maxsize=1000)
-        self.outgoing = Queue(maxsize=1000)
+        self.incoming = Queue()
+        self.outgoing = Queue()
         self.name = name
         self.process = Thread(target=self.run)
         self.has_data = Semaphore(0)
+        self.writing = Semaphore(0)
 
     def activate(self):
         self.process.start()
@@ -37,10 +38,13 @@ class Interface(object):
 
     def _write_packet(self, pkt):
         # Wait for interface to be free, then lock it to write
-        print "%s queue size %d" %(self.name, self.outgoing.qsize())
-        if self._iface_lock.acquire(blocking=1):
-            sendp(pkt, iface=self.name, verbose=False)
-            self._iface_lock.release()
+        #print "%s queue size %d" %(self.name, self.outgoing.qsize())
+        #sys.stdout.flush()
+        print ""
+        self._iface_lock.acquire(blocking=1)
+        sendp(pkt, iface=self.name, verbose=False)
+        self._iface_lock.release()
+        self.writing.release()
 
     def _handle_packet(self, hdr, frame):
         # If not writing, then put frame in queue, otherwise drop it
@@ -50,7 +54,7 @@ class Interface(object):
 
     def run(self):
         try:
-            sniffer = pcapy.open_live(self.name, 1024, True, 100)
+            sniffer = pcapy.open_live(self.name, 2500, True, 100)
             self._listener = Thread(target=sniffer.loop, args=(-1, self._handle_packet))
             self._iface_lock = RLock()
             self._listener.start()
@@ -105,6 +109,7 @@ class Switch(object):
                 # If mapping is found, forward frame on interface
                 #print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
                 dst_iface.send(pkt)
+                dst_iface.writing.acquire()
                 # This process is now done with this packet
                 return
             except KeyError:
@@ -115,9 +120,10 @@ class Switch(object):
             if dst_iface != iface:
                 #print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
                 dst_iface.send(pkt)
+                dst_iface.writing.acquire()
     
     def switch_forever(self):
-        # Start up interfaces
+        # Start up interface
         for iface in self.interfaces:
             iface.activate()
         # Switch forever
