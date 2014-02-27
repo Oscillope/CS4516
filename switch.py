@@ -1,8 +1,7 @@
 # This file will simulate a switch.
 import pcapy
 from scapy.all import *
-from multiprocessing import Process, Queue
-from threading import Thread, RLock
+from threading import Thread, RLock, Queue
 import sys, traceback, logging
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
@@ -17,7 +16,7 @@ class Interface(object):
         self.incoming = Queue()
         self.outgoing = Queue()
         self.name = name
-        self.process = Process(target=self.run)
+        self.process = Thread(target=self.run)
 
     def activate(self):
         self.process.start()
