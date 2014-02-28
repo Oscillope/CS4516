@@ -1,8 +1,8 @@
 # This file will simulate a switch.
 import pcapy
 from scapy.all import *
-from multiprocessing import Process, Queue
-from threading import Thread, RLock
+from threading import Thread, RLock, Semaphore
+from Queue import Queue
 import sys, traceback, logging
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
@@ -14,24 +14,30 @@ class Interface(object):
     process = None
     
     def __init__(self, name):
-        self.incoming = Queue()
-        self.outgoing = Queue()
+        self.incoming = Queue(maxsize=1000)
+        self.outgoing = Queue(maxsize=1000)
         self.name = name
-        self.process = Process(target=self.run)
+        self.process = Thread(target=self.run)
+        self.has_data = Semaphore(0)
 
     def activate(self):
         self.process.start()
 
-    def deactivate(self):
-        try:
-            self.process.terminate()
-            self.process.join()
-        except:
-            print "Problem deactivating interface:"
-            traceback.print_exc(file=sys.stdout)
+    #~ def deactivate(self):
+        #~ try:
+            #~ self.process.terminate()
+            #~ self.process.join()
+        #~ except:
+            #~ print "Problem deactivating interface:"
+            #~ traceback.print_exc(file=sys.stdout)
+            
+    def send(self, pkt):
+        self.outgoing.put(str(pkt))
+        self.has_data.release()
 
     def _write_packet(self, pkt):
         # Wait for interface to be free, then lock it to write
+        print "%s queue size %d" %(self.name, self.outgoing.qsize())
         if self._iface_lock.acquire(blocking=1):
             sendp(pkt, iface=self.name, verbose=False)
             self._iface_lock.release()
@@ -50,6 +56,7 @@ class Interface(object):
             self._listener.start()
             # TODO: send outgoing packets waiting in queue
             while True:
+                self.has_data.acquire()
                 if not self.outgoing.empty():
                     self._write_packet(Ether(self.outgoing.get()))
         except KeyboardInterrupt:
@@ -96,8 +103,8 @@ class Switch(object):
                 if iface == dst_iface:
                     return
                 # If mapping is found, forward frame on interface
-                print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                dst_iface.outgoing.put(str(pkt))
+                #print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
+                dst_iface.send(pkt)
                 # This process is now done with this packet
                 return
             except KeyError:
@@ -106,8 +113,8 @@ class Switch(object):
         # was received on
         for dst_iface in self.interfaces:
             if dst_iface != iface:
-                print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                dst_iface.outgoing.put(str(pkt))
+                #print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
+                dst_iface.send(pkt)
     
     def switch_forever(self):
         # Start up interfaces
@@ -126,8 +133,8 @@ class Switch(object):
                 pass
             except KeyboardInterrupt:
                 print "Keyboard interrupt detected, exiting..."
-                for iface in self.interfaces:
-                    iface.deactivate()
+                #~ for iface in self.interfaces:
+                    #~ iface.deactivate()
                 sys.exit(0)
             except:
                 print "Unexpected error:"
