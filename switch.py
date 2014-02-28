@@ -14,8 +14,8 @@ class Interface(object):
     process = None
     
     def __init__(self, name):
-        self.incoming = Queue()
-        self.outgoing = Queue()
+        self.incoming = Queue(maxsize=10000)
+        self.outgoing = Queue(maxsize=10000)
         self.name = name
         self.process = Thread(target=self.run)
         self.has_data = Semaphore(0)
