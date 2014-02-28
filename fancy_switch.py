@@ -36,7 +36,8 @@ class FancySwitch(Switch):
                     return
                 # If mapping is found, forward frame
                 print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                dst_iface.outgoing.put(str(pkt))
+                dst_iface.send(pkt)
+                dst_iface.writing.acquire()
                 return
             except KeyError:
                 pass
@@ -48,4 +49,5 @@ class FancySwitch(Switch):
                 if pkt_hash not in self.sent_frames[dst_iface]:
                     self.sent_frames[dst_iface].append(pkt_hash)
                     print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                    dst_iface.outgoing.put(str(pkt))
+                    dst_iface.send(pkt)
+                    dst_iface.writing.acquire()
