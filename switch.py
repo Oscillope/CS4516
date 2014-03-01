@@ -29,7 +29,6 @@ class Interface(object):
 
     def _write_packet(self, pkt):
         # Wait for interface to be free, then lock it to write
-        print ""
         self._iface_lock.acquire(blocking=1)
         sendp(pkt, iface=self.name, verbose=False)
         self._iface_lock.release()
