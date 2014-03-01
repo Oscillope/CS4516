@@ -1,7 +1,8 @@
 # This file will simulate a switch.
 import pcapy
 from scapy.all import *
-from threading import Thread, RLock, Semaphore
+import threading
+from killable_thread import Thread
 from Queue import Queue
 import sys, traceback, logging, time
 
@@ -15,13 +16,13 @@ class Interface(object):
     def __init__(self, name):
         self.incoming = Queue()
         self.name = name
-        self.has_data = Semaphore(0)
+        self.has_data = threading.Semaphore(0)
 
     def activate(self):
         self.run()
             
     def deactivate(self):
-        self._listener.exit()
+        self._listener.terminate()
             
     def send(self, pkt):
         self._write_packet(str(pkt))
@@ -40,11 +41,19 @@ class Interface(object):
             self.incoming.put(str(frame))
             self._iface_lock.release()
 
+    def _listen(self, sniffer):
+        try:
+            sniffer.loop(-1, self._handle_packet)
+        except (KeyboardInterrupt, SystemExit):
+            thread.interrupt_main()
+            print "%s listener terminating..."%(self.name)
+            thread.exit()
+
     def run(self):
         try:
             sniffer = pcapy.open_live(self.name, 2500, True, 100)
-            self._iface_lock = RLock()
-            self._listener = Thread(target=sniffer.loop, args=(-1, self._handle_packet))
+            self._iface_lock = threading.RLock()
+            self._listener = Thread(target=self._listen, args=(sniffer,))
             self._listener.start()
         except:
             print "Unexpected error:"
@@ -117,9 +126,10 @@ class Switch(object):
             except IndexError:
                 pass
             except KeyboardInterrupt:
-                print "Keyboard interrupt detected, exiting..."
+                print "Keyboard interrupt detected!"
                 for iface in self.interfaces:
                     iface.deactivate()
+                print "Exiting..."
                 sys.exit(0)
             except:
                 print "Unexpected error:"
