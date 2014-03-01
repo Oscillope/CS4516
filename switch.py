@@ -3,44 +3,35 @@ import pcapy
 from scapy.all import *
 from threading import Thread, RLock, Semaphore
 from Queue import Queue
-import sys, traceback, logging
+import sys, traceback, logging, time
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
 
 class Interface(object):
     incoming = None
-    outgoing = None
     name = None
     process = None
     
     def __init__(self, name):
-        self.incoming = Queue(maxsize=1000)
-        self.outgoing = Queue(maxsize=1000)
+        self.incoming = Queue()
         self.name = name
-        self.process = Thread(target=self.run)
         self.has_data = Semaphore(0)
 
     def activate(self):
-        self.process.start()
-
-    #~ def deactivate(self):
-        #~ try:
-            #~ self.process.terminate()
-            #~ self.process.join()
-        #~ except:
-            #~ print "Problem deactivating interface:"
-            #~ traceback.print_exc(file=sys.stdout)
+        self.run()
+            
+    def deactivate(self):
+        self._listener.exit()
             
     def send(self, pkt):
-        self.outgoing.put(str(pkt))
+        self._write_packet(str(pkt))
         self.has_data.release()
 
     def _write_packet(self, pkt):
         # Wait for interface to be free, then lock it to write
-        print "%s queue size %d" %(self.name, self.outgoing.qsize())
-        if self._iface_lock.acquire(blocking=1):
-            sendp(pkt, iface=self.name, verbose=False)
-            self._iface_lock.release()
+        self._iface_lock.acquire(blocking=1)
+        sendp(pkt, iface=self.name, verbose=False)
+        self._iface_lock.release()
 
     def _handle_packet(self, hdr, frame):
         # If not writing, then put frame in queue, otherwise drop it
@@ -50,17 +41,10 @@ class Interface(object):
 
     def run(self):
         try:
-            sniffer = pcapy.open_live(self.name, 1024, True, 100)
-            self._listener = Thread(target=sniffer.loop, args=(-1, self._handle_packet))
+            sniffer = pcapy.open_live(self.name, 2500, True, 100)
             self._iface_lock = RLock()
+            self._listener = Thread(target=sniffer.loop, args=(-1, self._handle_packet))
             self._listener.start()
-            # TODO: send outgoing packets waiting in queue
-            while True:
-                self.has_data.acquire()
-                if not self.outgoing.empty():
-                    self._write_packet(Ether(self.outgoing.get()))
-        except KeyboardInterrupt:
-            sys.exit(0)
         except:
             print "Unexpected error:"
             traceback.print_exc(file=sys.stdout)
@@ -117,7 +101,7 @@ class Switch(object):
                 dst_iface.send(pkt)
     
     def switch_forever(self):
-        # Start up interfaces
+        # Start up interface
         for iface in self.interfaces:
             iface.activate()
         # Switch forever
@@ -133,8 +117,8 @@ class Switch(object):
                 pass
             except KeyboardInterrupt:
                 print "Keyboard interrupt detected, exiting..."
-                #~ for iface in self.interfaces:
-                    #~ iface.deactivate()
+                for iface in self.interfaces:
+                    iface.deactivate()
                 sys.exit(0)
             except:
                 print "Unexpected error:"
