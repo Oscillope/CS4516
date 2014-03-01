@@ -2,6 +2,11 @@ import threading
 import inspect
 import ctypes
 
+# This is not original code.
+# It was taken from http://tomerfiliba.com/recipes/Thread2/
+# It is needed because python does not support asychronous
+# interrupts of threads.
+
 
 def _async_raise(tid, exctype):
     """raises the exception, performs cleanup if needed"""
