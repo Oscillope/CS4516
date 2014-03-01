@@ -14,6 +14,8 @@ logging.getLogger("scapy").setLevel(logging.ERROR)
 class FancySwitch(Switch):
     # dict of circular buffers of frames that have been sent out interface x, indexed by interface
     sent_frames = {}
+    # this is a mapping of interfaces to lists of interfaces that go to the same places
+    interface_equivalency = {}
     def _add_interface(self, iface_name):
         # add interface just like a regular switch
         iface = super(FancySwitch, self)._add_interface(iface_name)
@@ -27,7 +29,14 @@ class FancySwitch(Switch):
         if not eth_header.src in self.hosts:
             self.hosts[eth_header.src] = iface
             #print "Found host %s on interface %s " %(eth_header.src, iface)
-        
+        elif self.hosts[eth_header.src] != iface:
+            if iface in self.interface_equivalency: 
+                if self.hosts[eth_header.src] not in self.interface_equivalency[iface]:
+                    self.interface_equivalency[iface].add(self.hosts[eth_header.src])
+            else:
+                self.interface_equivalency[iface] = [self.hosts[eth_header.src]]
+
+
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
         if eth_header.dst != "ff:ff:ff:ff:ff:ff":
             try:
@@ -49,3 +58,6 @@ class FancySwitch(Switch):
                     self.sent_frames[dst_iface].append(pkt_hash)
                     print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
                     dst_iface.outgoing.put(str(pkt))
+
+    def pick_interface(self,):
+        
