@@ -8,7 +8,7 @@ from switch import Switch
 from random import choice
 
 # this is the number of checksums for an interface to store
-checker_backlog = 64 # networking people and the number 16, LOL
+checker_backlog = 64 # networking people and powers of 2, LOL
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
 
@@ -31,9 +31,9 @@ class FancySwitch(Switch):
         if pkt.dst == "ff:ff:ff:ff:ff:ff" and pkt.src == "08:00:27:10:e2:69":
             try:
                 src_iface_name = str(pkt.load).strip('\0')
-                # print "Raw data: %s on %s" %(src_iface_name, iface.name)
+                print "Raw data: %s on %s" %(src_iface_name, iface.name)
                 for src_iface in self.interfaces:
-                    # print "Comparing %s (%d) to %s (%d)." %(src_iface.name, len(src_iface.name), src_iface_name, len(src_iface_name))
+                    print "Comparing %s (%d) to %s (%d)." %(src_iface.name, len(src_iface.name), src_iface_name, len(src_iface_name))
                     if src_iface.name == src_iface_name:
                         self._duplex_equivalency(src_iface, iface)
                         break
@@ -65,7 +65,7 @@ class FancySwitch(Switch):
                     #print "%s -> %s on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
                     ifaces = [dst_iface]
                 else:
-                    print "Found packet in equivalency table, and I THREW IT ON THE GROOOOOUUUUUUNNNDDDD."
+                    print "Found interface in equivalency table, and I THREW IT ON THE GROOOOOUUUUUUNNNDDDD."
                     #so this is where we need to set up flows for bandwidth sharing
                     #I would imagine most of the "flows" that we care about will all be IP, if not then you are having a bad day and will not be going to the internet today
                     if ip_mac_pair is not None: #make sure that we can actually constructed the flow table key
@@ -80,14 +80,14 @@ class FancySwitch(Switch):
         
         # Attempt to find duplicate interfaces
         # OLD CODE (unneeded?): and pkt.src in self.hosts
-        if self.hosts[pkt.src] != iface and self._check_hash(str(pkt), iface):
+        if self.hosts[pkt.src] != iface and self._check_hash(str(pkt)):
             if len(ifaces) == 1:
                 self._duplex_equivalency(iface, self.hosts[pkt.src])
             else:
                 # Make an empty broadcast frame.
                 pkt = Ether(dst="ff:ff:ff:ff:ff:ff", src="08:00:27:10:e2:69")/Raw(load=iface.name)
                 # Send it out.
-                sendp(pkt, iface=iface.name)
+                sendp(pkt, iface=iface.name, verbose=True)
                 
         if len(ifaces) == 1:
             return ifaces
@@ -96,9 +96,11 @@ class FancySwitch(Switch):
         # was received on
         for dst_iface in self.interfaces:
             if dst_iface != iface:
-                if not self._check_hash(str(pkt), dst_iface):
-                    print "%s -> %s (bcast) on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
+                if (iface in self.interface_equivalency and dst_iface not in self.interface_equivalency[iface]) or iface not in self.interface_equivalency:
+                    #print "%s -> %s (bcast) on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
                     ifaces.append(dst_iface)
+                else:
+                    print "Found equivalent interface, and I THREW IT ON THE GROOUUUUUND."
         return ifaces
         
     def _forward_packet(self, pkt, ifaces):
@@ -110,13 +112,16 @@ class FancySwitch(Switch):
         self.circular_queue.append(pkt_hash)
         if not pkt_hash in self.sent_frames:
             self.sent_frames[pkt_hash] = []
+        
+        print "%s -> %s on %s" %(pkt.src, pkt.dst, [x.name for x in ifaces])
         for dst_iface in ifaces:
             self.sent_frames[pkt_hash].append(dst_iface)
             dst_iface.send(pkt)
         #print [x.name for x in self.sent_frames[pkt_hash]]
 
-    def _check_hash(self, pkt_hash, iface):
-        return pkt_hash in self.sent_frames and iface in self.sent_frames[pkt_hash]
+    # Returns true if the hash is found in the dictionary of sent frames.
+    def _check_hash(self, pkt_hash):
+        return pkt_hash in self.sent_frames
         
     #Adds iface2 to iface1's equivalency table and vice versa.
     def _duplex_equivalency(self, iface1, iface2):
@@ -127,14 +132,11 @@ class FancySwitch(Switch):
             if iface2 not in self.interface_equivalency[iface1]:
                 self.interface_equivalency[iface1].append(iface2)
                 print "%s: %s" %(iface1, [str(x) for x in self.interface_equivalency[iface1]])
-                #print pkt.show()
             else:
-                print "Equivalency exists."
                 return
         else:
             self.interface_equivalency[iface1] = [iface2]
             print "%s: %s" %(iface1, [str(x) for x in self.interface_equivalency[iface1]])
-            #print pkt.show()
         self._duplex_equivalency(iface2, iface1)
 
     def _get_ip_mac_pair(self, pkt):
