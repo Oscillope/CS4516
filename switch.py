@@ -94,7 +94,7 @@ class Switch(object):
                 # If mapping is found, forward frame on interface
                 #print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
                 # This process is now done with this packet
-                return dst_iface
+                return [dst_iface]
             except KeyError:
                 pass
         # Otherwise, broadcast to all interfaces except the one the frame
