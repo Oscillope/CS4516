@@ -125,8 +125,7 @@ class Switch(object):
                     # Send one frame off each non-empty queue
                     if not queue.empty():
                         pkt = Ether(queue.get())
-                        self._process_packet(pkt, iface)
-                        self._forward_packet(pkt, iface)
+                        self._forward_packet(pkt, self._process_packet(pkt, iface))
             except IndexError:
                 pass
             except KeyboardInterrupt:

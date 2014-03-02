@@ -24,6 +24,14 @@ class FancySwitch(Switch):
         iface = super(FancySwitch, self)._add_interface(iface_name)
         
     def _process_packet(self, pkt, iface):
+        eth_header = pkt['Ethernet']
+        # Map source port to interface
+        # TODO: Handle multiple instances of one address
+        if not eth_header.src in self.hosts:
+            self.hosts[eth_header.src] = iface
+            #print "Found host %s on interface %s " %(eth_header.src, iface)
+        
+        # Attempt to find duplicate interfaces
         if self.hosts[eth_header.src] != iface and not self._check_hash(pkt.hashret(), iface) and eth_headder.src in self.hosts:
             if iface in self.interface_equivalency:
                 if self.hosts[eth_header.src] not in self.interface_equivalency[iface]:
@@ -32,28 +40,16 @@ class FancySwitch(Switch):
             else:
                 self.interface_equivalency[iface] = [self.hosts[eth_header.src]]
                 print "%s: %s" %(iface, [str(x) for x in self.interface_equivalency[iface]])
-
-    def _forward_packet(self, pkt, iface):
-        eth_header = pkt['Ethernet']
-        # Map source port to interface
-        # TODO: Handle multiple instances of one address
-        if not eth_header.src in self.hosts:
-            self.hosts[eth_header.src] = iface
-            #print "Found host %s on interface %s " %(eth_header.src, iface)
-
+        # Set up list of interfaces
+        ifaces = []
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
         if eth_header.dst != "ff:ff:ff:ff:ff:ff":
             try:
                 dst_iface = self.hosts[eth_header.dst]
                 if iface == dst_iface:
-                    return
-                # If mapping is found, forward frame
-                #print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
+                    return []
                 if dst_iface not in self.interface_equivalency[iface]:
-                    dst_iface.send(pkt)
-                else:
-                    print "Not sending duplicate packet."
-                return
+                    return [dst_iface]
             except KeyError:
                 pass
         # Otherwise, broadcast to all interfaces except the one the frame
@@ -62,7 +58,14 @@ class FancySwitch(Switch):
             if dst_iface != iface:
                 if self._check_hash(pkt.hashret(), dst_iface):
                     #print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                    dst_iface.send(pkt)
+                    ifaces.append(dst_iface)
+        return ifaces
+
+    def _forward_packet(self, pkt, ifaces):
+        # Send to all interfaces in ifaces
+        for dst_iface in ifaces:
+            dst_iface.send(pkt)
+        
 
     def _check_hash(self, pkt_hash, iface):
         if pkt_hash in self.sent_frames and iface in self.sent_frames[pkt_hash]:
