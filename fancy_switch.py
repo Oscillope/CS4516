@@ -31,9 +31,9 @@ class FancySwitch(Switch):
         if pkt.dst == "ff:ff:ff:ff:ff:ff" and pkt.src == "08:00:27:10:e2:69":
             try:
                 src_iface_name = str(pkt.load).strip('\0')
-                print "Raw data: %s on %s" %(src_iface_name, iface.name)
+                #print "Raw data: %s on %s" %(src_iface_name, iface.name)
                 for src_iface in self.interfaces:
-                    print "Comparing %s (%d) to %s (%d)." %(src_iface.name, len(src_iface.name), src_iface_name, len(src_iface_name))
+                    #print "Comparing %s (%d) to %s (%d)." %(src_iface.name, len(src_iface.name), src_iface_name, len(src_iface_name))
                     if src_iface.name == src_iface_name:
                         self._duplex_equivalency(src_iface, iface)
                         break
@@ -54,25 +54,30 @@ class FancySwitch(Switch):
         ifaces = []
         #if this is already in the flow table, just foreward it
         ip_mac_pair = self._get_ip_mac_pair(pkt)
-        if ip_mac_pair in flow_table:
-            return flow_table[ip_mac_pair]
+        if ip_mac_pair in self.flow_table:
+            print "Switching with: %s, %s" %(ip_mac_pair[0], ip_mac_pair[1])
+            return [self.flow_table[ip_mac_pair]]
         if pkt.dst != "ff:ff:ff:ff:ff:ff":
             try:
                 dst_iface = self.hosts[pkt.dst]
                 if iface == dst_iface:
-                    return []  # this is because it is going out on the interface it came in on, which is dumb
-                if (iface in self.interface_equivalency and dst_iface not in self.interface_equivalency[iface]) or iface not in self.interface_equivalency:
+                    return []  # this is because it is ging out on the interface it came in on, which is dumb
+                # Forward frame if and only if they are not from  in a forwarding loop
+                if iface not in self.interface_equivalency or dst_iface not in self.interface_equivalency[iface]:
+                    # If we are sending on a redundant interface
+                    if dst_iface in self.interface_equivalency:
+                        #so this is where we need to set up flows for bandwidth sharing
+                        #I would imagine most of the "flows" that we care about will all be IP, if not then you are having a bad day and will not be going to the internet today
+                        if ip_mac_pair is not None: #make sure that we can actually constructed the flow table key
+                            #this is where we decide on the interface and make a flow
+                            print "Creating flow for: %s, %s" %(ip_mac_pair[0], ip_mac_pair[1])
+                            self.flow_table[ip_mac_pair] = self._pick_iface(dst_iface)
+                        else:
+                            print 'dropping protocol of type %s' %(pkt.type)
                     #print "%s -> %s on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
                     ifaces = [dst_iface]
                 else:
-                    print "Found interface in equivalency table, and I THREW IT ON THE GROOOOOUUUUUUNNNDDDD."
-                    #so this is where we need to set up flows for bandwidth sharing
-                    #I would imagine most of the "flows" that we care about will all be IP, if not then you are having a bad day and will not be going to the internet today
-                    if ip_mac_pair is not None: #make sure that we can actually constructed the flow table key
-                        #this is where we decide on the interface and make a flow
-                        flow_table[ip_mac_pair] = self._pick_iface(dst_iface)
-                    else:
-                        print 'dropping protocol of type %s' %(pkt.type)
+                    print "We're not getting here."
                     return []
             except KeyError:
                 #print "Key shortage. Ask LNL for help with %s." %(pkt.dst)
@@ -96,7 +101,7 @@ class FancySwitch(Switch):
         # was received on
         for dst_iface in self.interfaces:
             if dst_iface != iface:
-                if (iface in self.interface_equivalency and dst_iface not in self.interface_equivalency[iface]) or iface not in self.interface_equivalency:
+                if iface not in self.interface_equivalency or dst_iface not in self.interface_equivalency[iface]:
                     #print "%s -> %s (bcast) on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
                     ifaces.append(dst_iface)
                 else:
@@ -125,7 +130,7 @@ class FancySwitch(Switch):
         
     #Adds iface2 to iface1's equivalency table and vice versa.
     def _duplex_equivalency(self, iface1, iface2):
-        print "Binding %s to %s." %(iface1.name, iface2.name)
+        #print "Binding %s to %s." %(iface1.name, iface2.name)
         if iface1.name == iface2.name:
             return
         if iface1 in self.interface_equivalency:
@@ -140,10 +145,12 @@ class FancySwitch(Switch):
         self._duplex_equivalency(iface2, iface1)
 
     def _get_ip_mac_pair(self, pkt):
-        if pkt.type == 0x800: # ethertype is IP?
-            print('butts')
-            return (pkt['IP'].src,pkt.dst)
-        return None
+        try:
+            if pkt.type == 0x800: # ethertype is IP?
+                return (pkt['IP'].src,pkt.dst)
+            return None
+        except AttributeError:
+            return None
     # picks an interface out of the set of dst_iface and its equivalents, if you give a dst that does not have any, it will be unhappy, strategy for now is just to pick randomly, which should produce some evenness but not much
     def _pick_iface(self, dst_iface):
         potential_ifaces = self.interface_equivalency[dst_iface]
