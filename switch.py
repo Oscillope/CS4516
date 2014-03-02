@@ -80,25 +80,25 @@ class Switch(object):
         return interface
         
     def _process_packet(self, pkt, iface):
-        eth_header = pkt['Ethernet']
         # Map source port to interface
-        if not eth_header.src in self.hosts:
-            self.hosts[eth_header.src] = iface
-            print "Found host %s on interface %s " %(eth_header.src, iface)
+        if not pkt.src in self.hosts:
+            self.hosts[pkt.src] = iface
+            print "Found host %s on interface %s " %(pkt.src, iface)
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
-        if eth_header.dst != "ff:ff:ff:ff:ff:ff":
+        if pkt.dst != "ff:ff:ff:ff:ff:ff":
             try:
-                dst_iface = self.hosts[eth_header.dst]
+                dst_iface = self.hosts[pkt.dst]
                 if iface == dst_iface:
                     return []
                 # If mapping is found, forward frame on interface
-                #print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
+                #print "%s -> %s on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
                 # This process is now done with this packet
                 return [dst_iface]
             except KeyError:
                 pass
         # Otherwise, broadcast to all interfaces except the one the frame
         # was received on
+        # print "%s -> %s on %s (bcast)" %(pkt.src, pkt.dst, iface)
         return filter(lambda x: x != iface, self.interfaces)
                 
     
