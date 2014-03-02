@@ -68,15 +68,7 @@ class FancySwitch(Switch):
         # OLD CODE (unneeded?): and eth_header.src in self.hosts
         if self.hosts[eth_header.src] != iface and self._check_hash(str(pkt), iface):
             if len(ifaces) == 1:
-                if iface in self.interface_equivalency:
-                    if self.hosts[eth_header.src] not in self.interface_equivalency[iface]:
-                        self.interface_equivalency[iface].append(self.hosts[eth_header.src])
-                        print "%s: %s" %(iface, [str(x) for x in self.interface_equivalency[iface]])
-                        #print pkt.show()
-                else:
-                    self.interface_equivalency[iface] = [self.hosts[eth_header.src]]
-                    print "%s: %s" %(iface, [str(x) for x in self.interface_equivalency[iface]])
-                    #print pkt.show()
+                self._duplex_equivalency(iface, self.hosts[eth_header.src])
             else:
                 # Make an empty broadcast frame.
                 pkt = Ether(dst="ff:ff:ff:ff:ff:ff", src="08:00:27:10:e2:69")/Raw(load=iface.name)
@@ -111,3 +103,18 @@ class FancySwitch(Switch):
 
     def _check_hash(self, pkt_hash, iface):
         return pkt_hash in self.sent_frames and iface in self.sent_frames[pkt_hash]
+        
+    #Adds iface2 to iface1's equivalency table and vice versa.
+    def _duplex_equivalency(self, iface1, iface2):
+        if iface1 in self.interface_equivalency:
+            if iface2 not in self.interface_equivalency[iface1]:
+                self.interface_equivalency[iface1].append(iface2)
+                print "%s: %s" %(iface1, [str(x) for x in self.interface_equivalency[iface1]])
+                #print pkt.show()
+            else:
+                return
+        else:
+            self.interface_equivalency[iface1] = [iface2]
+            print "%s: %s" %(iface1, [str(x) for x in self.interface_equivalency[iface1]])
+            #print pkt.show()
+        self._duplex_equivalency(iface2, iface1)
