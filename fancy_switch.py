@@ -30,7 +30,8 @@ class FancySwitch(Switch):
         if not eth_header.src in self.hosts:
             self.hosts[eth_header.src] = iface
             #print "Found host %s on interface %s " %(eth_header.src, iface)
-        elif self.hosts[eth_header.src] != iface and self._check_hash(pkt.hashret(), iface):
+        # Else if we've seen this packet before on a different interface.
+        elif self.hosts[eth_header.src] != iface and not self._check_hash(pkt.hashret(), iface):
             if iface in self.interface_equivalency: 
                 if self.hosts[eth_header.src] not in self.interface_equivalency[iface]:
                     self.interface_equivalency[iface].append(self.hosts[eth_header.src])
