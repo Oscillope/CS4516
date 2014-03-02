@@ -80,37 +80,31 @@ class Switch(object):
         return interface
         
     def _process_packet(self, pkt, iface):
-        pass
-    
-    def _forward_packet(self, pkt, iface):
-        #print "Forwarding packet!"
         eth_header = pkt['Ethernet']
         # Map source port to interface
-        # TODO: Handle multiple instances of one address
         if not eth_header.src in self.hosts:
             self.hosts[eth_header.src] = iface
             print "Found host %s on interface %s " %(eth_header.src, iface)
-        
-        
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
         if eth_header.dst != "ff:ff:ff:ff:ff:ff":
             try:
                 dst_iface = self.hosts[eth_header.dst]
                 if iface == dst_iface:
-                    return
+                    return []
                 # If mapping is found, forward frame on interface
                 #print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                dst_iface.send(pkt)
                 # This process is now done with this packet
-                return
+                return dst_iface
             except KeyError:
                 pass
         # Otherwise, broadcast to all interfaces except the one the frame
         # was received on
-        for dst_iface in self.interfaces:
-            if dst_iface != iface:
-                #print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                dst_iface.send(pkt)
+        return filter(lambda x: x != iface, self.interfaces)
+                
+    
+    def _forward_packet(self, pkt, ifaces):
+        for dst_iface in ifaces:
+            dst_iface.send(pkt)
     
     def switch_forever(self):
         # Start up interface
@@ -125,8 +119,8 @@ class Switch(object):
                     # Send one frame off each non-empty queue
                     if not queue.empty():
                         pkt = Ether(queue.get())
-                        self._process_packet(pkt, iface)
-                        self._forward_packet(pkt, iface)
+                        dst_ifaces = self._process_packet(pkt, iface)
+                        self._forward_packet(pkt, dst_ifaces)
             except IndexError:
                 pass
             except KeyboardInterrupt:
