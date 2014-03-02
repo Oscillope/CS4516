@@ -5,6 +5,7 @@
 \usepackage{fullpage}
 \usepackage{hyperref}
 \usepackage{graphicx}
+\usepackage{multicol}
 \usepackage{caption}
 \usepackage{subcaption}
 \usepackage{pgfplots}
@@ -17,7 +18,7 @@
 			linkcolor=black,
 			citecolor=black}
 
-\title{Bandwidth Trunking Using Layer 2 Devices}
+\title{LoopAware: Bandwidth Trunking Using Layer 2 Devices}
 \author{Jason Rosenman \and Louis Fogel \and Sam Abradi}
 \date{}
 
@@ -29,6 +30,7 @@
 	This allows us to not only be competitive with systems such as EtherFuse \cite{etherfuse}, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
 \end{abstract}
 \input{../Introduction/Introduction.tex}
+\input{../Approach/Approach.tex}
 \input{../Methodology/Methodology.tex}
 \input{../Results/Results.tex}
 \input{../Conclusion/Conclusion.tex}
