@@ -14,7 +14,7 @@ class Interface(object):
     process = None
     
     def __init__(self, name):
-        self.incoming = Queue()
+        self.incoming = Queue(maxsize=1000)
         self.name = name
         self.has_data = threading.Semaphore(0)
 
@@ -78,6 +78,9 @@ class Switch(object):
         interface = Interface(iface_name)
         self.interfaces.append(interface)
         return interface
+        
+    def _process_packet(self, pkt, iface):
+        pass
     
     def _forward_packet(self, pkt, iface):
         #print "Forwarding packet!"
@@ -121,7 +124,9 @@ class Switch(object):
                     queue = iface.incoming
                     # Send one frame off each non-empty queue
                     if not queue.empty():
-                        self._forward_packet(Ether(queue.get()), iface)
+                        pkt = Ether(queue.get())
+                        self._process_packet(pkt, iface)
+                        self._forward_packet(pkt, iface)
             except IndexError:
                 pass
             except KeyboardInterrupt:

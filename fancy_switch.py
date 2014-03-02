@@ -7,7 +7,7 @@ import collections
 from switch import Switch
 
 # this is the number of checksums for an interface to store
-checker_backlog = 16 # networking people and the number 16, LOL
+checker_backlog = 64 # networking people and the number 16, LOL
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
 
@@ -22,6 +22,16 @@ class FancySwitch(Switch):
     def _add_interface(self, iface_name):
         # add interface just like a regular switch
         iface = super(FancySwitch, self)._add_interface(iface_name)
+        
+    def _process_packet(self, pkt, iface):
+        if self.hosts[eth_header.src] != iface and not self._check_hash(pkt.hashret(), iface) and eth_headder.src in self.hosts:
+            if iface in self.interface_equivalency:
+                if self.hosts[eth_header.src] not in self.interface_equivalency[iface]:
+                    self.interface_equivalency[iface].append(self.hosts[eth_header.src])
+                    print "%s: %s" %(iface, [str(x) for x in self.interface_equivalency[iface]])
+            else:
+                self.interface_equivalency[iface] = [self.hosts[eth_header.src]]
+                print "%s: %s" %(iface, [str(x) for x in self.interface_equivalency[iface]])
 
     def _forward_packet(self, pkt, iface):
         eth_header = pkt['Ethernet']
@@ -30,16 +40,6 @@ class FancySwitch(Switch):
         if not eth_header.src in self.hosts:
             self.hosts[eth_header.src] = iface
             #print "Found host %s on interface %s " %(eth_header.src, iface)
-        # Else if we've seen this packet before on a different interface.
-        elif self.hosts[eth_header.src] != iface and not self._check_hash(pkt.hashret(), iface):
-            if iface in self.interface_equivalency: 
-                if self.hosts[eth_header.src] not in self.interface_equivalency[iface]:
-                    self.interface_equivalency[iface].append(self.hosts[eth_header.src])
-                    print "%s: %s" %(iface, [str(x) for x in self.interface_equivalency[iface]])
-            else:
-                self.interface_equivalency[iface] = [self.hosts[eth_header.src]]
-                print "%s: %s" %(iface, [str(x) for x in self.interface_equivalency[iface]])
-
 
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
         if eth_header.dst != "ff:ff:ff:ff:ff:ff":
