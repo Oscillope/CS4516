@@ -55,7 +55,7 @@ class FancySwitch(Switch):
         #if this is already in the flow table, just foreward it
         ip_mac_pair = self._get_ip_mac_pair(pkt)
         if ip_mac_pair in self.flow_table:
-            print "Switching with: %s, %s" %(ip_mac_pair[0], ip_mac_pair[1])
+            #print "Switching with: %s, %s" %(ip_mac_pair[0], ip_mac_pair[1])
             return [self.flow_table[ip_mac_pair]]
         if pkt.dst != "ff:ff:ff:ff:ff:ff":
             try:
@@ -92,7 +92,7 @@ class FancySwitch(Switch):
                 # Make an empty broadcast frame.
                 pkt = Ether(dst="ff:ff:ff:ff:ff:ff", src="08:00:27:10:e2:69")/Raw(load=iface.name)
                 # Send it out.
-                sendp(pkt, iface=iface.name, verbose=True)
+                sendp(pkt, iface=iface.name, verbose=False)
                 
         if len(ifaces) == 1:
             return ifaces
@@ -104,8 +104,6 @@ class FancySwitch(Switch):
                 if iface not in self.interface_equivalency or dst_iface not in self.interface_equivalency[iface]:
                     #print "%s -> %s (bcast) on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
                     ifaces.append(dst_iface)
-                else:
-                    print "Found equivalent interface, and I THREW IT ON THE GROOUUUUUND."
         return ifaces
         
     def _forward_packet(self, pkt, ifaces):
@@ -118,7 +116,7 @@ class FancySwitch(Switch):
         if not pkt_hash in self.sent_frames:
             self.sent_frames[pkt_hash] = []
         
-        print "%s -> %s on %s" %(pkt.src, pkt.dst, [x.name for x in ifaces])
+        #print "%s -> %s on %s" %(pkt.src, pkt.dst, [x.name for x in ifaces])
         for dst_iface in ifaces:
             self.sent_frames[pkt_hash].append(dst_iface)
             dst_iface.send(pkt)
