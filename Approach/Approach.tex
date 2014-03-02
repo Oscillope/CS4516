@@ -1,31 +1,26 @@
 \section{Approach}
 \label{sec:approach}
-    Our team proposes the creation an Ethernet switch that implements flow-based forwarding.
-    Unlike a conventional switch, which uses a forwarding table to determine which interface to forward frames to, our system would create flows based on source IP address (when available) to allow bandwidth sharing over linked interfaces.
-    Even when linked with a conventional switch, our device could utilize multiple links to share bandwidth upstream (towards the linked switch) and have redundancy downstream (from the linked switch).
-    Assuming that the conventional switch would forward to multiple ports simultaneously if it detects the same MAC address multiple times, a link could fail between our switch and the conventional switch the loss of a single frame.
+    Unlike a conventional switch, which uses a forwarding table to determine which interface to forward frames, LoopAware creates flow-like entries in its forwarding table based on source IP address (when available) to allow bandwidth sharing over linked interfaces.
+    Even when linked with a conventional switch, LoopAware can utilize multiple links to share bandwidth upstream (towards the linked switch) and have redundancy downstream (from the linked switch).
+    Assuming that a conventional switch will forward to multiple ports simultaneously if it detects the same MAC address multiple times, a link can go down between LoopAware and the conventional switch without dropping a single frame.
     As a result, ongoing connections can be maintained throughout a link failure.
 
-    We propose detecting forwarding loops by caching a hash of each frame that is received, and comparing it to incoming frames to detect duplicates.
-    To increase efficiency and limit hardware complexity, we can use the CRC that is already included in the Ethernet frame as the hash.
-    We propose calculating the necessary size of the cache using estimated time-to-live (TTL) values for the CRCs.
-    The TTL would be a function of the maximum number of hops in a loop, and of the maximum amount of broadcast traffic.
-    These maximums would be practical limitations on the system we are interested in supporting, as opposed to theoretical limitations.
-    In the case that these maximums are exceeded, our device could fall back to simply disabling redundant links when a loop is detected, thereby turning the network into a directed acyclic graph.
+    A notable challenge to our implementation is the instantaneous detection of loops in the network.
+    LoopAware detects these loops by caching a hash of each frame that is received, and comparing it to incoming frames to detect duplicates.
+    When a duplicate frame is detected, the interface it was sent on and the interface it was received on are determined to be aliases of each other.
+    In the case that a duplicate frame was a broadcast and the source interface can not be determined, LoopAware sends a frame back over the interface that the frame was received on.
+    To increase efficiency and limit complexity in a hardware implementation of LoopAware, we would recommend using the CRC that is already included in the Ethernet frame as the hash.
+    Due to the difficulty of obtaining the CRC from the frames in software, our implementation simply stores the entire packet for comparison.
+    As new CRCs are added to the buffer, the older ones will be overwritten.
+    The minimum size of the buffer is dependent on time-to-live (TTL) values for the CRCs.
+    The TTL is a function of the maximum number of hops in a loop, and of the maximum amount of broadcast traffic.
+    These maximums are practical limitations on the system we are interested in supporting, as opposed to theoretical limitations.
+    In the case that these maximums are exceeded, LoopAware falls back to simply disabling redundant links when a loop is detected, thereby turning the network into a directed acyclic graph.
     The looped interface will remain disabled until the state of the network falls within the limits of the cache.
-
-    When no redundant links exist, the created flows would essentially form a forwarding table.
-    However, when redundant links are formed, the device could use the source IP address of the packet to make flows that determine forwarding strategy for frames.
-    We propose creating flows based on measured bandwidth of interfaces with the goal of uniform utilization.
-    Our device could detect link failures when a previously existing loop no longer exists.
-    In this condition, the device would delete all flows related to that loop.
-    This would cause it to rebuild new flows using the remaining available links.
-
-    To determine the feasibility of this approach to intelligent switching the team proposes simulation of the behavior of a network of intelligent switches in software.
-    The team would construct a simulated network consisting of virtual machines capable of creating network traffic.
-    The virtual machines will perform a series of predetermined requests through a virtual router to servers both inside and outside of the network.
-    We will also have servers on the virtual network that will receive requests from other hosts on the network as well as foreign hosts outside the network.
-    Several topologies and scenarios would be employed in testing our system to show a range of behaviors in the device.
-    We can also test with two conventional ``dumb'' switches in the same configuration, to demonstrate that a broadcast storm would occur under these conditions.
-    We propose verification of the functionality of our system by confirming that the requests and responses are correct.
-    The effectiveness of the system would be measured by gauging the latency and throughput of the network in forwarding the requests.
+    
+    When no redundant links exist, the created flows form a forwarding table like that of any other Ethernet switch.
+    However, when redundant links are formed, the device will use the source IP address of the packet to make flows that determine forwarding strategy for frames.
+    Flows are created based on measured bandwidth of interfaces with the goal of keeping utilization balanced.
+    LoopAware detects link failures when a previously existing loop no longer exists.
+    In this condition, the device deletes all flows related to that loop.
+    This causes it to rebuild new flows using the remaining available links.
