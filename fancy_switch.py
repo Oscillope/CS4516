@@ -5,6 +5,7 @@ import sys, traceback
 import logging
 import collections
 from switch import Switch
+from random import choice
 
 # this is the number of checksums for an interface to store
 checker_backlog = 64 # networking people and the number 16, LOL
@@ -18,7 +19,9 @@ class FancySwitch(Switch):
     interface_equivalency = {}
     # the "keep the buffer circular" queue
     circular_queue = collections.deque()
-    
+    # this keeps track of the current flows
+    flow_table = {}
+
     def _add_interface(self, iface_name):
         # add interface just like a regular switch
         iface = super(FancySwitch, self)._add_interface(iface_name)
@@ -49,16 +52,27 @@ class FancySwitch(Switch):
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
         # Set up list of interfaces
         ifaces = []
+        #if this is already in the flow table, just foreward it
+        ip_mac_pair = self._get_ip_mac_pair(pkt)
+        if ip_mac_pair in flow_table:
+            return flow_table[ip_mac_pair]
         if pkt.dst != "ff:ff:ff:ff:ff:ff":
             try:
                 dst_iface = self.hosts[pkt.dst]
                 if iface == dst_iface:
-                    return []
+                    return []  # this is because it is going out on the interface it came in on, which is dumb
                 if (iface in self.interface_equivalency and dst_iface not in self.interface_equivalency[iface]) or iface not in self.interface_equivalency:
                     #print "%s -> %s on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
                     ifaces = [dst_iface]
                 else:
                     print "Found packet in equivalency table, and I THREW IT ON THE GROOOOOUUUUUUNNNDDDD."
+                    #so this is where we need to set up flows for bandwidth sharing
+                    #I would imagine most of the "flows" that we care about will all be IP, if not then you are having a bad day and will not be going to the internet today
+                    if ip_mac_pair is not None: #make sure that we can actually constructed the flow table key
+                        #this is where we decide on the interface and make a flow
+                        flow_table[ip_mac_pair] = self._pick_iface(dst_iface)
+                    else:
+                        print 'dropping protocol of type %s' %(pkt.type)
                     return []
             except KeyError:
                 #print "Key shortage. Ask LNL for help with %s." %(pkt.dst)
@@ -122,3 +136,14 @@ class FancySwitch(Switch):
             print "%s: %s" %(iface1, [str(x) for x in self.interface_equivalency[iface1]])
             #print pkt.show()
         self._duplex_equivalency(iface2, iface1)
+
+    def _get_ip_mac_pair(self, pkt):
+        if pkt.type == 0x800: # ethertype is IP?
+            print('butts')
+            return (pkt['IP'].src,pkt.dst)
+        return None
+    # picks an interface out of the set of dst_iface and its equivalents, if you give a dst that does not have any, it will be unhappy, strategy for now is just to pick randomly, which should produce some evenness but not much
+    def _pick_iface(self, dst_iface):
+        potential_ifaces = self.interface_equivalency[dst_iface]
+        potential_ifaces.append(dst_iface)
+        return choice(potential_ifaces)
