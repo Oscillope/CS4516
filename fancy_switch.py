@@ -24,24 +24,24 @@ class FancySwitch(Switch):
         iface = super(FancySwitch, self)._add_interface(iface_name)
         
     def _process_packet(self, pkt, iface):
-        eth_header = pkt['Ethernet']
         # Check for our special packets.
-        if eth_header.dst == "ff:ff:ff:ff:ff:ff" and eth_header.src == "08:00:27:10:e2:69":
-            src_iface_name = pkt.getlayer(Raw).load
-            print "Raw data: %s" %(src_iface_name)
-            for src_iface in self.interfaces:
-                if src_iface.name == src_iface_name:
-                    break
-            if src_iface in self.interface_equivalency:
-                self.interface_equivalency[src_iface].append(iface)
-            else:
-                self.interface_equivalency[src_iface] = [iface]
+        if pkt.dst == "ff:ff:ff:ff:ff:ff" and pkt.src == "08:00:27:10:e2:69":
+            try:
+                src_iface_name = str(pkt.load).strip('\0')
+                # print "Raw data: %s on %s" %(src_iface_name, iface.name)
+                for src_iface in self.interfaces:
+                    # print "Comparing %s (%d) to %s (%d)." %(src_iface.name, len(src_iface.name), src_iface_name, len(src_iface_name))
+                    if src_iface.name == src_iface_name:
+                        self._duplex_equivalency(src_iface, iface)
+                        break
+            except AttributeError:
+                return []
             
         # Map source port to interface
         # TODO: Handle multiple instances of one address
-        if not eth_header.src in self.hosts:
-            self.hosts[eth_header.src] = iface
-            print "Found host %s on interface %s " %(eth_header.src, iface)
+        if not pkt.src in self.hosts:
+            self.hosts[pkt.src] = iface
+            print "Found host %s on interface %s " %(pkt.src, iface)
         
         
             
@@ -49,26 +49,26 @@ class FancySwitch(Switch):
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
         # Set up list of interfaces
         ifaces = []
-        if eth_header.dst != "ff:ff:ff:ff:ff:ff":
+        if pkt.dst != "ff:ff:ff:ff:ff:ff":
             try:
-                dst_iface = self.hosts[eth_header.dst]
+                dst_iface = self.hosts[pkt.dst]
                 if iface == dst_iface:
                     return []
                 if (iface in self.interface_equivalency and dst_iface not in self.interface_equivalency[iface]) or iface not in self.interface_equivalency:
-                    #print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
+                    #print "%s -> %s on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
                     ifaces = [dst_iface]
                 else:
                     print "Found packet in equivalency table, and I THREW IT ON THE GROOOOOUUUUUUNNNDDDD."
                     return []
             except KeyError:
-                #print "Key shortage. Ask LNL for help with %s." %(eth_header.dst)
+                #print "Key shortage. Ask LNL for help with %s." %(pkt.dst)
                 pass
         
         # Attempt to find duplicate interfaces
-        # OLD CODE (unneeded?): and eth_header.src in self.hosts
-        if self.hosts[eth_header.src] != iface and self._check_hash(str(pkt), iface):
+        # OLD CODE (unneeded?): and pkt.src in self.hosts
+        if self.hosts[pkt.src] != iface and self._check_hash(str(pkt), iface):
             if len(ifaces) == 1:
-                self._duplex_equivalency(iface, self.hosts[eth_header.src])
+                self._duplex_equivalency(iface, self.hosts[pkt.src])
             else:
                 # Make an empty broadcast frame.
                 pkt = Ether(dst="ff:ff:ff:ff:ff:ff", src="08:00:27:10:e2:69")/Raw(load=iface.name)
@@ -83,7 +83,7 @@ class FancySwitch(Switch):
         for dst_iface in self.interfaces:
             if dst_iface != iface:
                 if not self._check_hash(str(pkt), dst_iface):
-                    print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
+                    print "%s -> %s (bcast) on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
                     ifaces.append(dst_iface)
         return ifaces
         
@@ -106,12 +106,16 @@ class FancySwitch(Switch):
         
     #Adds iface2 to iface1's equivalency table and vice versa.
     def _duplex_equivalency(self, iface1, iface2):
+        print "Binding %s to %s." %(iface1.name, iface2.name)
+        if iface1.name == iface2.name:
+            return
         if iface1 in self.interface_equivalency:
             if iface2 not in self.interface_equivalency[iface1]:
                 self.interface_equivalency[iface1].append(iface2)
                 print "%s: %s" %(iface1, [str(x) for x in self.interface_equivalency[iface1]])
                 #print pkt.show()
             else:
+                print "Equivalency exists."
                 return
         else:
             self.interface_equivalency[iface1] = [iface2]
