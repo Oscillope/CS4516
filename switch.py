@@ -1,7 +1,8 @@
 # This file will simulate a switch.
 import pcapy
 from scapy.all import *
-from threading import Thread, RLock, Semaphore
+import threading
+from killable_thread import Thread
 from Queue import Queue
 import sys, traceback, logging, time
 
@@ -13,15 +14,15 @@ class Interface(object):
     process = None
     
     def __init__(self, name):
-        self.incoming = Queue()
+        self.incoming = Queue(maxsize=1000)
         self.name = name
-        self.has_data = Semaphore(0)
+        self.has_data = threading.Semaphore(0)
 
     def activate(self):
         self.run()
             
     def deactivate(self):
-        self._listener.exit()
+        self._listener.terminate()
             
     def send(self, pkt):
         self._write_packet(str(pkt))
@@ -39,11 +40,19 @@ class Interface(object):
             self.incoming.put(str(frame))
             self._iface_lock.release()
 
+    def _listen(self, sniffer):
+        try:
+            sniffer.loop(-1, self._handle_packet)
+        except (KeyboardInterrupt, SystemExit):
+            thread.interrupt_main()
+            print "%s listener terminating..."%(self.name)
+            thread.exit()
+
     def run(self):
         try:
             sniffer = pcapy.open_live(self.name, 2500, True, 100)
-            self._iface_lock = RLock()
-            self._listener = Thread(target=sniffer.loop, args=(-1, self._handle_packet))
+            self._iface_lock = threading.RLock()
+            self._listener = Thread(target=self._listen, args=(sniffer,))
             self._listener.start()
         except:
             print "Unexpected error:"
@@ -69,36 +78,33 @@ class Switch(object):
         interface = Interface(iface_name)
         self.interfaces.append(interface)
         return interface
-    
-    def _forward_packet(self, pkt, iface):
-        #print "Forwarding packet!"
-        eth_header = pkt['Ethernet']
+        
+    def _process_packet(self, pkt, iface):
         # Map source port to interface
-        # TODO: Handle multiple instances of one address
-        if not eth_header.src in self.hosts:
-            self.hosts[eth_header.src] = iface
-            print "Found host %s on interface %s " %(eth_header.src, iface)
-        
-        
+        if not pkt.src in self.hosts:
+            self.hosts[pkt.src] = iface
+            print "Found host %s on interface %s " %(pkt.src, iface)
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
-        if eth_header.dst != "ff:ff:ff:ff:ff:ff":
+        if pkt.dst != "ff:ff:ff:ff:ff:ff":
             try:
-                dst_iface = self.hosts[eth_header.dst]
+                dst_iface = self.hosts[pkt.dst]
                 if iface == dst_iface:
-                    return
+                    return []
                 # If mapping is found, forward frame on interface
-                #print "%s -> %s on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                dst_iface.send(pkt)
+                #print "%s -> %s on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
                 # This process is now done with this packet
-                return
+                return [dst_iface]
             except KeyError:
                 pass
         # Otherwise, broadcast to all interfaces except the one the frame
         # was received on
-        for dst_iface in self.interfaces:
-            if dst_iface != iface:
-                #print "%s -> %s (bcast) on %s -> %s" %(eth_header.src, eth_header.dst, iface, dst_iface)
-                dst_iface.send(pkt)
+        # print "%s -> %s on %s (bcast)" %(pkt.src, pkt.dst, iface)
+        return filter(lambda x: x != iface, self.interfaces)
+                
+    
+    def _forward_packet(self, pkt, ifaces):
+        for dst_iface in ifaces:
+            dst_iface.send(pkt)
     
     def switch_forever(self):
         # Start up interface
@@ -112,13 +118,16 @@ class Switch(object):
                     queue = iface.incoming
                     # Send one frame off each non-empty queue
                     if not queue.empty():
-                        self._forward_packet(Ether(queue.get()), iface)
+                        pkt = Ether(queue.get())
+                        dst_ifaces = self._process_packet(pkt, iface)
+                        self._forward_packet(pkt, dst_ifaces)
             except IndexError:
                 pass
             except KeyboardInterrupt:
-                print "Keyboard interrupt detected, exiting..."
+                print "Keyboard interrupt detected!"
                 for iface in self.interfaces:
                     iface.deactivate()
+                print "Exiting..."
                 sys.exit(0)
             except:
                 print "Unexpected error:"
