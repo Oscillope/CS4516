@@ -93,11 +93,11 @@
 	Situations links in the network are at saturation show the most significant difference in performance between architectures.
 	Setups with redundant links perform much better than any other system when there is one flow causing all or most of the congestion, because all of  the other traffic defaults to the other link.
 	Single links are unable to provide this service, and as a result they provide markedly worse performance in congestion conditions.
-
-    \subsection{Congestion Control}
-	We do not yet know what will happen in this situation.
-	The results will come from having hosts send traffic to each other with the default TCP congestion control mechanism in Linux 3.2.0.
-	Testing with congestion control may expose flaws in our bandwidth sharing technique, because links only hover near saturation, so the switch may have a hard time determining that more flows need to be moved over to the other link, because the flows will be too interdependent.
+    
+    Because our software system did not operate as fast as a hardware implementation would, it was not possible to conduct accurate measurements of the effect congestion conditions would have on a LoopAware device.
+    During our testing the software switching devices would simply stop working when overwhelmed with traffic.
+    However, based on the behaviors we observed in our simulations we would expect a hardware implementation of LoopAware to successfully split traffic between links, mitigating the effects of link congestion.
+    Our device does successfully forward packets over flows that it generates on redundant links.
 
     \subsection{Response Time}
 	Although our device does require additional processing of broadcast frames, non-broadcast frames can be handled without much additional overhead because they can be quickly found in the flow table.
