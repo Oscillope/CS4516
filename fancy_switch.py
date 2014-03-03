@@ -21,12 +21,23 @@ class FancySwitch(Switch):
     circular_queue = collections.deque()
     # this keeps track of the current flows
     flow_table = {}
-
+    # outgoing activity for the purposes of bandwidth sharing and load balancing
+    outgoing_activity_map = {}
+    # timers to keep track of all of the equivalencies, for failover detection
+    equivalency_timeout = {}
+    # sketchy way of avoiding calling reap_dead_equivalencies too frequently
+    pkts_till_reap = 0
     def _add_interface(self, iface_name):
         # add interface just like a regular switch
         iface = super(FancySwitch, self)._add_interface(iface_name)
+        self.outgoing_activity_map[iface_name] = 0.0 # havent sent any traffic yet
         
     def _process_packet(self, pkt, iface):
+        if self.pkts_till_reap == 0:
+            self.pkts_till_reap = 100
+            self._reap_dead_equivalencies()
+        else:
+            self.pkts_till_reap -= 1
         # Check for our special packets.
         if pkt.dst == "ff:ff:ff:ff:ff:ff" and pkt.src == "08:00:27:10:e2:69":
             try:
@@ -70,8 +81,8 @@ class FancySwitch(Switch):
                         #I would imagine most of the "flows" that we care about will all be IP, if not then you are having a bad day and will not be going to the internet today
                         if ip_mac_pair is not None: #make sure that we can actually constructed the flow table key
                             #this is where we decide on the interface and make a flow
-                            print "Creating flow for: %s, %s" %(ip_mac_pair[0], ip_mac_pair[1])
                             self.flow_table[ip_mac_pair] = self._pick_iface(dst_iface)
+                            print "Creating flow for: %s, %s on %s" %(ip_mac_pair[0], ip_mac_pair[1], self.flow_table[ip_mac_pair])
                         else:
                             print 'dropping protocol of type %s' %(pkt.type)
                     #print "%s -> %s on %s -> %s" %(pkt.src, pkt.dst, iface, dst_iface)
@@ -131,6 +142,11 @@ class FancySwitch(Switch):
         #print "Binding %s to %s." %(iface1.name, iface2.name)
         if iface1.name == iface2.name:
             return
+
+        # we get here every time that the loop is re-detected this keeps track of when the loop was last seen, to know when it dies
+        self._update_equivalency_timeout(iface1) 
+        self._update_equivalency_timeout(iface2) 
+
         if iface1 in self.interface_equivalency:
             if iface2 not in self.interface_equivalency[iface1]:
                 self.interface_equivalency[iface1].append(iface2)
@@ -149,8 +165,31 @@ class FancySwitch(Switch):
             return None
         except AttributeError:
             return None
+
     # picks an interface out of the set of dst_iface and its equivalents, if you give a dst that does not have any, it will be unhappy, strategy for now is just to pick randomly, which should produce some evenness but not much
     def _pick_iface(self, dst_iface):
         potential_ifaces = self.interface_equivalency[dst_iface]
         potential_ifaces.append(dst_iface)
         return choice(potential_ifaces)
+
+    def _update_equivalency_timeout(self, iface):
+        self.equivalency_timeout[iface] = time.time()
+
+    def _reap_dead_equivalencies(self):
+        equivalency_timeout_copy = self.equivalency_timeout.copy()
+        for k, v in equivalency_timeout_copy.iteritems():
+            if (v + 5.0) < time.time():
+                hosts_copy = self.hosts.copy()
+                for host, iface in hosts_copy.items():
+                    if k == iface:
+                        del self.hosts[host]
+                del self.interface_equivalency[k]
+                del self.equivalency_timeout[k]
+                self._reap_dead_flows(k)
+
+    def _reap_dead_flows(self, iface):
+        flow_table_copy = self.flow_table.copy()
+        for k, v in flow_table_copy.iteritems():
+            if v == iface:
+                print "Deleting flow on %s, %s." %(k[0], k[1])
+                del self.flow_table[k]

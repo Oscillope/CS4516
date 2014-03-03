@@ -5,6 +5,8 @@ import threading
 from killable_thread import Thread
 from Queue import Queue
 import sys, traceback, logging, time
+from datetime import datetime
+from stopwatch import Stopwatch
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
 
@@ -66,6 +68,13 @@ class Switch(object):
     interfaces = []
     # Dictionary mapping hosts to interface objects
     hosts = {}
+    # For metric purposes
+    watch = Stopwatch()
+    # Moving average of broadcast traffic
+    average = 0.5
+    # Moving average weight for new packets
+    NEW_PACKET_WEIGHT = 0.1
+    
 
     def __init__(self, iface_list=None):
         if iface_list is None:
@@ -107,6 +116,8 @@ class Switch(object):
             dst_iface.send(pkt)
     
     def switch_forever(self):
+        logfile = open('broadcast_percent_%s.dat' %(str(datetime.now())), 'w')
+        watch.start()
         # Start up interface
         for iface in self.interfaces:
             iface.activate()
@@ -120,11 +131,20 @@ class Switch(object):
                     if not queue.empty():
                         pkt = Ether(queue.get())
                         dst_ifaces = self._process_packet(pkt, iface)
+                        curtime = watch.gettime()
+                        if len(dst_iface) == 1:
+                            self.average *= 1 - self.NEW_PACKET_WEIGHT
+                        elif len(dst_iface) > 1:
+                            self.average *= 1 - self.NEW_PACKET_WEIGHT
+                            self.average += self.NEW_PACKET_WEIGHT
+                        logfile.write("{0:16d} {1:4f}".format(curtime, self.average))
                         self._forward_packet(pkt, dst_ifaces)
             except IndexError:
                 pass
             except KeyboardInterrupt:
                 print "Keyboard interrupt detected!"
+                logfile.close()
+                print "Closed logfile."
                 for iface in self.interfaces:
                     iface.deactivate()
                 print "Exiting..."
