@@ -16,32 +16,33 @@
         \begin{subfigure}[b]{0.4\textwidth}
             \centering
             \input{../images/topology2.tex}
-            \label{fig:startop}
             \caption{``Star'' Network Topology}
+            \label{fig:startop}
         \end{subfigure}
         ~~~~~~~~~~~~~~~
         \begin{subfigure}[b]{0.4\textwidth}
             \centering
             \input{../images/topology1.tex}
-            \label{fig:looptop}
             \caption{``Loop'' Network Topology}
+            \label{fig:looptop}
         \end{subfigure}
-        \label{fig:topologies}
         \caption{Network Testing Topologies}
+        \label{fig:topologies}
     \end{figure}
     Our final test will simulates a link failure in one of the redundant links connecting a LoopAware device and a conventional switch.
 
     % %Broadcast traffic moving average to show broadcast storm
-    To demonstrate the efficacy of LoopAware in preventing broadcast storms, we measured the percent of total traffic comprised of broadcast frames when a forwarding loop existed in the network.
+    To demonstrate the efficacy of LoopAware in preventing broadcast storms, we measured the amount of total traffic comprised of broadcast frames when a forwarding loop existed in the network.
     The measurements were made by recalculating an exponentially weighted moving average whenever a new frame was sent by a switch.
     The average was then recorded in a file with the time (since the first packet was forwarded).
     Data and results of this experiment can be found in Section \ref{sec:results}.
 
     % Throughput measure using HTTP (with loop and without loop)
     We tested the throughput over our simulated links to show the performance of LoopAware.
-    To test the throughput, we set up a simple python web server to serve up a 14 Megabyte file (consisting of random text) and downloaded it across two switches using curl.
+    To test the throughput, we set up a simple Python web server to host a 14 megabyte file (consisting of randomly-generated data) and downloaded it across two switches using curl.
     When the file finished downloading we recorded the download time and average download speed recorded by curl.
     Data and results from this test can be found in Section \ref{sec:results}.
+    We verified that the random data was downloaded correctly in all cases using md5 hashes of the file on the server and client.
 
     We also tested the response of LoopAware to failures of its redundant links.
     This test was conducted using a LoopAware device and a conventional Ethernet switch linked on two interfaces.
@@ -52,4 +53,4 @@
 
     These tests demonstrate the functionality of the LoopAware and its backwards compatibility with non-LoopAware switches.
     Because simulation is done in software, many of our performance results may not accurately reflect the behavior of a hardware switch.
-    We did not conduct simulations of hardware due to time constraints on our research.
+    We did not conduct simulations of hardware due to time and budgetary constraints on our research.
