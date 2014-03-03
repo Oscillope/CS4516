@@ -21,12 +21,22 @@ class FancySwitch(Switch):
     circular_queue = collections.deque()
     # this keeps track of the current flows
     flow_table = {}
-
+    # outgoing activity for the purposes of bandwidth sharing and load balancing
+    outgoing_activity_map = {}
+    # timers to keep track of all of the equivalencies, for failover detection
+    equivalency_timeout = {}
+    # sketchy way of avoiding calling reap_dead_equivalencies too frequently
+    pkts_till_reap = 0
     def _add_interface(self, iface_name):
         # add interface just like a regular switch
         iface = super(FancySwitch, self)._add_interface(iface_name)
-        
+        outgoing_activity_map[iface_name] = 0.0 # havent sent any traffic yet
     def _process_packet(self, pkt, iface):
+        if pkts_till_reap == 0:
+            pkts_till_reap = 100:
+            self._reap_dead_equivalencies()
+        else:
+            pkts_till_reap -= 1
         # Check for our special packets.
         if pkt.dst == "ff:ff:ff:ff:ff:ff" and pkt.src == "08:00:27:10:e2:69":
             try:
@@ -131,6 +141,11 @@ class FancySwitch(Switch):
         #print "Binding %s to %s." %(iface1.name, iface2.name)
         if iface1.name == iface2.name:
             return
+
+        # we get here every time that the loop is re-detected this keeps track of when the loop was last seen, to know when it dies
+        self._update_equivalency_timeout(iface1) 
+        self._update_equivalency_timeout(iface2) 
+
         if iface1 in self.interface_equivalency:
             if iface2 not in self.interface_equivalency[iface1]:
                 self.interface_equivalency[iface1].append(iface2)
@@ -149,8 +164,23 @@ class FancySwitch(Switch):
             return None
         except AttributeError:
             return None
+
     # picks an interface out of the set of dst_iface and its equivalents, if you give a dst that does not have any, it will be unhappy, strategy for now is just to pick randomly, which should produce some evenness but not much
     def _pick_iface(self, dst_iface):
         potential_ifaces = self.interface_equivalency[dst_iface]
         potential_ifaces.append(dst_iface)
         return choice(potential_ifaces)
+
+    def _update_equivalency_timeout(self, iface):
+        self.equivalency_timeout[iface] = time.time()
+
+    def _reap_dead_equivalencies(self):
+        for k, v in self.equivalency_timeout.iteritems():
+            if (v + 5.0) < time.time():
+                del self.equivalency_timeout[k]
+                self._reap_dead_flows(k)
+
+    def _reap_dead_flows(self, iface):
+        for k, v in self.flow_table.iteritems():
+            if v == iface:
+                del self.flow_table[k]
