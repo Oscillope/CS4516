@@ -11,8 +11,8 @@
     In the case that a duplicate frame was a broadcast and the source interface can not be determined, LoopAware sends a frame back over the interface that the frame was received on.
     To increase efficiency and limit complexity in a hardware implementation of LoopAware, we would recommend using the CRC that is already included in the Ethernet frame as the hash.
     Due to the difficulty of obtaining the CRC from the frames in software, our implementation simply stores the entire packet for comparison.
-    As new CRCs are added to the buffer, the older ones will be overwritten.
-    The minimum size of the buffer is dependent on time-to-live (TTL) values for the CRCs.
+    As new hashes are added to the buffer, the older ones will be removed after enough other packets have been added to the buffer.
+    The minimum size of the buffer is dependent on time-to-live (TTL) values for the hashes.
     The TTL is a function of the maximum number of hops in a loop, and of the maximum amount of broadcast traffic.
     These maximums are practical limitations on the system we are interested in supporting, as opposed to theoretical limitations.
     In the case that these maximums are exceeded, LoopAware falls back to simply disabling redundant links when a loop is detected, thereby turning the network into a directed acyclic graph.
