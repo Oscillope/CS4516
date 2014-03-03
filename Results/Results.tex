@@ -1,154 +1,105 @@
 \section{Results}
 \label{sec:results}
-  We collected performance metrics on networks utilizing our switching approach to measure its effectiveness.
-  We also measured the performance of an unmodified software switch to allow direct comparison between approaches without encountering issues with    sources of error that may have been introduced by our simulation.
-  Due to the fact that neither switch will be implemented in hardware, our performance results may be slightly different because hardware allows for greater parallelism.
-  We measured the performance of the network when a link is at saturation to determine the benefit that a redundant bandwidth-sharing link is able to provide.
-  We also measured and compared at the goodput of the network in these situations with and without congestion control to show the actual practical effect of our device on end hosts in the network.
+    We collected performance metrics on networks utilizing our switching approach to measure its effectiveness.
+    We also measured the performance of an unmodified software switch to allow direct comparison between approaches without encountering issues with    sources of error that may have been introduced by our simulation.
+    Due to the fact that neither switch will be implemented in hardware, our performance results may be slightly different because hardware allows for greater parallelism.
+    We measured the performance of the network when a link is at saturation to determine the benefit that a redundant bandwidth-sharing link is able to provide.
+    We also measured and compared at the goodput of the network in these situations with and without congestion control to show the actual practical effect of our device on end hosts in the network.
 
-  \subsection{Broadcast Storm Mitigation}
-    \begin{figure}[ht]
-	    \centering
-	    \begin{subfigure}[b]{0.4\textwidth}
-		    \centering
-		    \begin{tikzpicture}
-		    \begin{axis} [
-			    title=Conventional Switch,
-			    xlabel=Time ($\mu$s),
-			    ylabel=\% Broadcast Traffic,
-		    ]
-		    \addplot+[mark size=0.6pt] table {../data/broadcast_storm_normal.dat};
-		    \end{axis}
-		    \end{tikzpicture}
-		    \caption{}
-		    \label{fig:stdbcast}
-	    \end{subfigure}
-	    \hfill
-	    \begin{subfigure}[b]{0.4\textwidth}
-		    \centering
-		    \begin{tikzpicture}
-		    \begin{axis} [
-			    title=Smart Switch,
-			    xlabel=Time ($\mu$s),
-			    ylabel=\% Broadcast Traffic,
-		    ]
-		    \addplot+[mark size=0.6pt] table {../data/broadcast_storm_smart.dat};
-		    \end{axis}
-		    \end{tikzpicture}
-		    \caption{}
-		    \label{fig:smtbcast}
-	    \end{subfigure}
-	    \caption{Percentage of Broadcast Traffic}
-	    \label{fig:bcast}
-    \end{figure}
+    \subsection{Broadcast Storm Mitigation}
+	\begin{figure}[ht]
+		\centering
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\begin{tikzpicture}
+			\begin{axis} [
+				title=Conventional Switch,
+				xlabel=Time ($\mu$s),
+				ylabel=Broadcast Traffic Ratio,
+			]
+			\addplot+[mark size=0.6pt] table {../data/broadcast_storm_normal.dat};
+			\end{axis}
+			\end{tikzpicture}
+			\label{fig:stdbcast}
+			\caption{}
+		\end{subfigure}
+		\hfill
+		\begin{subfigure}[b]{0.4\textwidth}
+			\centering
+			\begin{tikzpicture}
+			\begin{axis} [
+				title=Smart Switch,
+				xlabel=Time ($\mu$s),
+				ylabel=Broadcast Traffic Ratio,
+			]
+			\addplot+[mark size=0.6pt] table {../data/broadcast_storm_smart.dat};
+			\end{axis}
+			\end{tikzpicture}
+			\label{fig:smtbcast}
+			\caption{}
+		\end{subfigure}
+		\label{fig:bcast}
+		\caption{Broadcast Traffic Ratios}
+	\end{figure}
 
-    To show the effect of broadcast storms on network traffic, we determined the percentage of broadcast frames from total network traffic both with and without a forwarding loop.
-    Normally (in a star network with conventional switches), nearly all of the traffic will start as broadcast traffic during the auto-configuration period.
-    The amount of broadcast traffic will then drop down to a noise-floor level.
-    If the network has a loop in it, the amount of broadcast traffic will not drop off significantly because the network will start a broadcast storm as a result of the forwarding loop.
-    Our device exhibits the same drop-off behavior even in a graph network because it filters broadcast packets out of forwarding loops, preventing a broadcast storm from occurring.
+	To show the effect of broadcast storms on network traffic, we determined the ratio of broadcast frames to total network traffic both with and without a forwarding loop.
+	Normally in a switched Ethernet network, nearly all of the traffic will start as broadcast traffic during the auto-configuration period.
+	The amount of broadcast traffic will then drop down to a noise-floor level.
+	If the network has a loop in it, the amount of broadcast traffic will not drop off significantly because the network will start a broadcast storm as a result of the forwarding loop.
+	This broadcast storm behavior is shown in Figure \ref{fig:stdbcast}.
+	Note that broadcast traffic stays at or near 100\% of total traffic (save a few bursts of legitimate unicast) for the entirety of the measured period. 
+	As shown in Figure \ref{fig:smtbcast}, our device exhibits the correct drop-off behavior even in a graph network because it filters broadcast packets out of forwarding loops, preventing a broadcast storm from occurring.
+	These results confirm our hypothesis that LoopAware is capable of detecting and preventing broadcast storms that would normally occur in switched Ethernet networks.
+	In our next experiment we explored the impact this mitigation had on the throughput of the network.
 
-    \begin{table}[ht]
-	    \centering
-	    \caption{File Transfer Statistics}
-	    \label{tab:throughput}
-	    \begin{tabular}{|c|c|c|c|}
-		    \hline
-		    \multicolumn{2}{|c|}{} & With Loop	& Without Loop \\
-		    \hline
-		    \multirow{2}{*}{Conventional Switch}& Throughput	& 181 kBps	& 201 kBps \\ \cline{2-4}
-		    & Time	& 0:01:16	& 0:01:08 \\
-		    \hline
-		    \multirow{2}{*}{Smart Switch}	& Throughput	& 223 kBps	& 191 kBps \\ \cline{2-4}
-		    & Time	& 0:01:01	& 0:01:11\\
-		    \hline
-	    \end{tabular}
-    \end{table}
+	\begin{table}[ht]
+		\centering
+		\caption{File Transfer Statistics (14MB)}
+		\label{tab:throughput}
+		\begin{tabular}{|c|c|c|c|}
+			\hline
+			\multicolumn{2}{|c|}{} & With Loop	& Without Loop \\
+			\hline
+			\multirow{2}{*}{Conventional Switch}& Throughput	& 181 kBps	& 201 kBps \\ \cline{2-4}
+			& Time	& 0:01:16	& 0:01:08 \\
+			\hline
+			\multirow{2}{*}{Smart Switch}	& Throughput	& 223 kBps	& 191 kBps \\ \cline{2-4}
+			& Time	& 0:01:01	& 0:01:11\\
+			\hline
+		\end{tabular}
+	\end{table}
 
-    Preventing broadcast storms has a noticeable effect on the performance of the network from the perspective of end hosts.
-    The average goodput of the network when a forwarding loop exists in the network is significantly improved by our device because it prevents the broadcast storm from occurring.
-    These findings are not terribly surprising, but do confirm that the device is capable of preventing broadcast storms without having to disable links.
-    This ability is key to the more novel features of the device, bandwidth sharing and seamless fail-over.
+	Preventing broadcast storms has a noticeable effect on the performance of the network from the perspective of end hosts.
+	The average goodput of the network when a forwarding loop exists in the network is significantly improved by our device because it prevents the broadcast storm from occurring.
+	These findings are not terribly surprising, but do confirm that the device is capable of preventing broadcast storms without having to disable links.
+	This ability is key to the more novel features of the device, bandwidth sharing and seamless fail-over.
 
-  \subsection{Congestion Conditions}
-    Situations links in the network are at saturation show the most significant difference in performance between architectures.
-    Setups with redundant links perform much better than any other system when there is one flow causing all or most of the congestion, because all of  the other traffic defaults to the other link.
-    Single links are unable to provide this service, and as a result they provide markedly worse performance in congestion conditions.
-    \begin{figure}[ht]
-	    \centering
-	    \begin{subfigure}[b]{0.4\textwidth}
-		    \centering
-		    \begin{tikzpicture}
-		    \begin{axis} [
-			    title=Conventional Switch,
-			    xlabel=Time (s),
-			    ylabel=Packet Loss (\%),
-		    ]
-    % 		\addplot[blue] table {}
-		    \end{axis}
-		    \end{tikzpicture}
-		    \caption{}
-		    \label{fig:stdbcast}
-	    \end{subfigure}
-	    \hfill
-	    \begin{subfigure}[b]{0.4\textwidth}
-		    \centering
-		    \begin{tikzpicture}
-		    \begin{axis} [
-			    title=Smart Switch,
-			    xlabel=Time (s),
-			    ylabel=Packet Loss (\%),
-		    ]
-    % 		\addplot[blue] table {}
-		    \end{axis}
-		    \end{tikzpicture}
-		    \caption{}
-		    \label{fig:smtbcast}
-	    \end{subfigure}
-	    \caption{Packet Loss}
-	    \label{fig:bcast}
-    \end{figure}
+    \subsection{Link Fail-Over}
+	One of the key features of LoopAware is the ability to have multiple redundant links between switches.
+	This is important in an enterprise environment, where system uptime is key and a trunk failure between switches has the ability to bring down entire subnets.
+	In our testing, a redundantly-linked switch was able to fail over a broken link with few dropped packets.
+	With our current implementation, packets would be lost for at most 5 seconds during a link failure.
+	This value is adjustable, and if implemented in hardware would be able to be orders of magnitude faster.
+	However, even with our software implementation the link failed over and the hosts were able to resume communication without much interruption.
+	
+    \subsection{Bandwidth Sharing}
+	LoopAware is able to share bandwidth between redundant links.
+	It accomplishes this by establishing flows based on Layer 2 and Layer 3 information as well as information about the loop topology.
+	Once a flow is established, traffic can quickly be forwarded over either one of the redundant interfaces.
+	In a hardware implementation, the interface to assign a flow to would be decided based on link utilization.
+	As shown in Table \ref{tab:throughput}, we established a noticeably better throughput when downloading a file over a redundantly-linked LoopAware switch.
+	
+    \subsection{Congestion Conditions}
+	Situations links in the network are at saturation show the most significant difference in performance between architectures.
+	Setups with redundant links perform much better than any other system when there is one flow causing all or most of the congestion, because all of  the other traffic defaults to the other link.
+	Single links are unable to provide this service, and as a result they provide markedly worse performance in congestion conditions.
 
-  \subsection{Congestion Control}
-    We do not yet know what will happen in this situation.
-    The results will come from having hosts send traffic to each other with the default TCP congestion control mechanism in Linux 3.12.9.
-    Testing with congestion control may expose flaws in our bandwidth sharing technique, because links only hover near saturation, so the switch may have a hard time determining that more flows need to be moved over to the other link, because the flows will be too interdependent.
+    \subsection{Congestion Control}
+	We do not yet know what will happen in this situation.
+	The results will come from having hosts send traffic to each other with the default TCP congestion control mechanism in Linux 3.2.0.
+	Testing with congestion control may expose flaws in our bandwidth sharing technique, because links only hover near saturation, so the switch may have a hard time determining that more flows need to be moved over to the other link, because the flows will be too interdependent.
 
-  \subsection{Response Time}
-    Although our device does require additional processing of broadcast frames, non-broadcast frames can be handled without much additional overhead because they can be quickly found in the flow table.
-    Results of our testing indicate that the average response time is not significantly affected by the addition of intelligent switching hardware.
-    The advantages of using our device are not offset by any increase in response time from processing, except initially when the flow table is being constructed and when legitimate broadcast traffic is much higher than normal.
-    \begin{figure}[ht]
-	    \centering
-	    \begin{subfigure}[b]{0.4\textwidth}
-		    \centering
-		    \begin{tikzpicture}
-		    \begin{axis} [
-			    title=Conventional Switch,
-			    xlabel=Time (s),
-			    ylabel=Response Time (ms),
-		    ]
-    % 		\addplot[blue] table {}
-		    \end{axis}
-		    \end{tikzpicture}
-		    \caption{}
-		    \label{fig:stdbcast}
-	    \end{subfigure}
-	    \hfill
-	    \begin{subfigure}[b]{0.4\textwidth}
-		    \centering
-		    \begin{tikzpicture}
-		    \begin{axis} [
-			    title=Smart Switch,
-			    xlabel=Time (s),
-			    ylabel=Response Time (ms),
-		    ]
-    % 		\addplot[blue] table {}
-		    \end{axis}
-		    \end{tikzpicture}
-		    \caption{}
-		    \label{fig:smtbcast}
-	    \end{subfigure}
-	    \caption{Response Time}
-	    \label{fig:bcast}
-    \end{figure}
+    \subsection{Response Time}
+	Although our device does require additional processing of broadcast frames, non-broadcast frames can be handled without much additional overhead because they can be quickly found in the flow table.
+	Results of our testing indicate that the average response time is not significantly affected by the addition of intelligent switching hardware.
+	The advantages of using our device are not offset by any increase in response time from processing, except initially when the flow table is being constructed and when legitimate broadcast traffic is much higher than normal.
