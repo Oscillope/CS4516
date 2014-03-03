@@ -3,3 +3,4 @@ impacket==0.9.11
 scapy==2.2.0-dev
 wsgiref==0.1.2
 http://corelabs.coresecurity.com/index.php?module=Wiki&action=attachment&type=tool&page=Pcapy&file=pcapy-0.10.8.tar.gz
+https://gist.githubusercontent.com/pklaus/856268/raw/8653b4a6113af12d6b3ce4cf00340e5c22633b2d/ping.py
