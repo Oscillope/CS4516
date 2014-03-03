@@ -20,8 +20,8 @@
 		    \addplot+[mark size=0.6pt] table {../data/broadcast_storm_normal.dat};
 		    \end{axis}
 		    \end{tikzpicture}
-		    \caption{}
 		    \label{fig:stdbcast}
+		    \caption{}
 	    \end{subfigure}
 	    \hfill
 	    \begin{subfigure}[b]{0.4\textwidth}
@@ -35,11 +35,11 @@
 		    \addplot+[mark size=0.6pt] table {../data/broadcast_storm_smart.dat};
 		    \end{axis}
 		    \end{tikzpicture}
-		    \caption{}
 		    \label{fig:smtbcast}
+		    \caption{}
 	    \end{subfigure}
-	    \caption{Percentage of Broadcast Traffic}
 	    \label{fig:bcast}
+	    \caption{Percentage of Broadcast Traffic}
     \end{figure}
 
     To show the effect of broadcast storms on network traffic, we determined the percentage of broadcast frames from total network traffic both with and without a forwarding loop.
@@ -78,40 +78,6 @@
     Situations links in the network are at saturation show the most significant difference in performance between architectures.
     Setups with redundant links perform much better than any other system when there is one flow causing all or most of the congestion, because all of  the other traffic defaults to the other link.
     Single links are unable to provide this service, and as a result they provide markedly worse performance in congestion conditions.
-    \begin{figure}[ht]
-	    \centering
-	    \begin{subfigure}[b]{0.4\textwidth}
-		    \centering
-		    \begin{tikzpicture}
-		    \begin{axis} [
-			    title=Conventional Switch,
-			    xlabel=Time (s),
-			    ylabel=Packet Loss (\%),
-		    ]
-    % 		\addplot[blue] table {}
-		    \end{axis}
-		    \end{tikzpicture}
-		    \caption{}
-		    \label{fig:stdbcast}
-	    \end{subfigure}
-	    \hfill
-	    \begin{subfigure}[b]{0.4\textwidth}
-		    \centering
-		    \begin{tikzpicture}
-		    \begin{axis} [
-			    title=Smart Switch,
-			    xlabel=Time (s),
-			    ylabel=Packet Loss (\%),
-		    ]
-    % 		\addplot[blue] table {}
-		    \end{axis}
-		    \end{tikzpicture}
-		    \caption{}
-		    \label{fig:smtbcast}
-	    \end{subfigure}
-	    \caption{Packet Loss}
-	    \label{fig:bcast}
-    \end{figure}
 
   \subsection{Congestion Control}
     We do not yet know what will happen in this situation.
@@ -122,37 +88,3 @@
     Although our device does require additional processing of broadcast frames, non-broadcast frames can be handled without much additional overhead because they can be quickly found in the flow table.
     Results of our testing indicate that the average response time is not significantly affected by the addition of intelligent switching hardware.
     The advantages of using our device are not offset by any increase in response time from processing, except initially when the flow table is being constructed and when legitimate broadcast traffic is much higher than normal.
-    \begin{figure}[ht]
-	    \centering
-	    \begin{subfigure}[b]{0.4\textwidth}
-		    \centering
-		    \begin{tikzpicture}
-		    \begin{axis} [
-			    title=Conventional Switch,
-			    xlabel=Time (s),
-			    ylabel=Response Time (ms),
-		    ]
-    % 		\addplot[blue] table {}
-		    \end{axis}
-		    \end{tikzpicture}
-		    \caption{}
-		    \label{fig:stdbcast}
-	    \end{subfigure}
-	    \hfill
-	    \begin{subfigure}[b]{0.4\textwidth}
-		    \centering
-		    \begin{tikzpicture}
-		    \begin{axis} [
-			    title=Smart Switch,
-			    xlabel=Time (s),
-			    ylabel=Response Time (ms),
-		    ]
-    % 		\addplot[blue] table {}
-		    \end{axis}
-		    \end{tikzpicture}
-		    \caption{}
-		    \label{fig:smtbcast}
-	    \end{subfigure}
-	    \caption{Response Time}
-	    \label{fig:bcast}
-    \end{figure}
