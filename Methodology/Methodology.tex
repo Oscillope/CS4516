@@ -1,17 +1,55 @@
 \section{Methodology}
 \label{sec:methodology}
-	To determine the feasibility of this approach to intelligent switching the team will simulate the behavior of a network of intelligent switches in software.
-	The team will construct a simulated network consisting of virtual machines capable of creating network traffic.
-	The virtual machines will perform a series of predetermined requests through a virtual router to servers both inside and outside of the network.
-	We will also have servers on the virtual network that will receive requests from other hosts on the network as well as foreign hosts outside the network.
-	We will verify the functionality of our system by confirming that the requests and responses are correct.
-	The effectiveness of the system will be measured by gaging the latency and throughput of the network in forwarding the requests.
-	
-	Using Python and the impacket library we will create a switch emulator using a virtual machine with enough network interfaces to support the topologies we will test.
-	We will also simulate the behavior of a conventional switch to demonstrate that our approach works in conjunction with these switches, as well as to demonstrate the advantage of our switch over a conventional device.
-	
-	Several topologies will be employed in testing our system.
-	We will start with a single smart switch in a star topology (to test its basic functionality as a switch), then move to one of our switches along with a conventional switch in a loop topology.
-	We can also test with two conventional switches in the same configuration, to demonstrate that a broadcast storm would occur under these conditions.
-	Next, we will move to a topology involving multiple smart switches connected to each other.
-	Our final test will simulate a loop topology that exceeds the capacity of the circular buffer to ensure that the switch can still fall back to disabling loop links even if it cannot keep track of the entire network topology.
+    We conducted a series of tests to determine the feasibility of LoopAware.
+    All tests were conducted on the simulation of a LoopAware device we implemented in software and the corresponding simulation of a regular "dumb" Ethernet switch.
+    We constructed a simulated network consisting of virtual machines capable of creating different types of network traffic.
+    The virtual machines performed a series of predetermined requests through a virtual router to servers both inside and outside of the network.
+    We determined the effectiveness of the system by gaging the latency and throughput of the network in forwarding the requests.
+
+    Three topologies were be employed in testing LoopAware.
+    For each topology, the network was tested with our simulated Ethernet switch and then with our simulated LoopAware device.
+    We began with a single switch in a star topology to set a baseline for functionality as a switch, as shown in Figure \ref{fig:startop}.
+    Next, we tested the switches in a configuration with redundant links to a conventional switch, creating a forwarding loop.
+    This configuration is shown in Figure \ref{fig:looptop}.
+    \begin{figure}[ht]
+        \centering
+        \begin{subfigure}[b]{0.4\textwidth}
+            \centering
+            \input{../images/topology2.tex}
+            \label{fig:startop}
+            \caption{``Star'' Network Topology}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.4\textwidth}
+            \centering
+            \input{../images/topology1.tex}
+            \label{fig:looptop}
+            \caption{``Loop'' Network Topology}
+        \end{subfigure}
+        \label{fig:topologies}
+        \caption{Network Testing Topologies}
+    \end{figure}
+    Our final test will simulates a link failure in one of the redundant links connecting a LoopAware device and a conventional switch.
+
+    % %Broadcast traffic moving average to show broadcast storm
+    To demonstrate the efficacy of LoopAware in preventing broadcast storms, we measured the percent of total traffic comprised of broadcast frames when a forwarding loop existed in the network.
+    The measurements were made by recalculating an exponentially weighted moving average whenever a new frame was sent by a switch.
+    The average was then recorded in a file with the time (since the first packet was forwarded).
+    Data and results of this experiment can be found in Section \ref{sec:results}.
+
+    % Throughput measure using HTTP (with loop and without loop)
+    We tested the throughput over our simulated links to show the performance of LoopAware.
+    To test the throughput, we set up a simple python web server to serve up a 14 Megabyte file (consisting of random text) and downloaded it across two switches using curl.
+    When the file finished downloading we recorded the download time and average download speed recorded by curl.
+    Data and results from this test can be found in Section \ref{sec:results}.
+
+    We also tested the response of LoopAware to failures of its redundant links.
+    This test was conducted using a LoopAware device and a conventional Ethernet switch linked on two interfaces.
+    Hosts on both sides of the redundant links sent ICMP ping requests to each other to show requests successfully crossing the
+    interface.
+    One connection was then severed (by deactivating an interface on one of the switches), and the response of the LoopAware device was observed.
+    The results of this test are discussed in Section \ref{sec:results}.
+
+    These tests demonstrate the functionality of the LoopAware and its backwards compatibility with non-LoopAware switches.
+    Because simulation is done in software, many of our performance results may not accurately reflect the behavior of a hardware switch.
+    We did not conduct simulations of hardware due to time constraints on our research.

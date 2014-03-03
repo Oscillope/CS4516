@@ -14,10 +14,10 @@
 		    \begin{tikzpicture}
 		    \begin{axis} [
 			    title=Conventional Switch,
-			    xlabel=Time (s),
+			    xlabel=Time ($\mu$s),
 			    ylabel=\% Broadcast Traffic,
 		    ]
-    % 		\addplot[blue] table {}
+		    \addplot+[mark size=0.6pt] table {../data/broadcast_storm_normal.dat};
 		    \end{axis}
 		    \end{tikzpicture}
 		    \caption{}
@@ -29,10 +29,10 @@
 		    \begin{tikzpicture}
 		    \begin{axis} [
 			    title=Smart Switch,
-			    xlabel=Time (s),
+			    xlabel=Time ($\mu$s),
 			    ylabel=\% Broadcast Traffic,
 		    ]
-    % 		\addplot[blue] table {}
+		    \addplot+[mark size=0.6pt] table {../data/broadcast_storm_smart.dat};
 		    \end{axis}
 		    \end{tikzpicture}
 		    \caption{}
@@ -50,16 +50,17 @@
 
     \begin{table}[ht]
 	    \centering
-	    \caption{Forwarding Loop Goodput}
-	    \label{tab:goodput}
-	    % TODO: Add more rows to table for with and without congestion control. Have switch headers span rows.
-	    \begin{tabular}{|c|c|c|}
+	    \caption{File Transfer Statistics}
+	    \label{tab:throughput}
+	    \begin{tabular}{|c|c|c|c|}
 		    \hline
-		    & Without Loop	& With Loop \\
+		    \multicolumn{2}{|c|}{} & With Loop	& Without Loop \\
 		    \hline
-		    Conventional Switch	&	& \\
+		    \multirow{2}{*}{Conventional Switch}& Throughput	& 181 kBps	& 201 kBps \\ \cline{2-4}
+		    & Time	& 0:01:16	& 0:01:08 \\
 		    \hline
-		    Smart Switch				&	& \\
+		    \multirow{2}{*}{Smart Switch}	& Throughput	& 223 kBps	& 191 kBps \\ \cline{2-4}
+		    & Time	& 0:01:01	& 0:01:11\\
 		    \hline
 	    \end{tabular}
     \end{table}
