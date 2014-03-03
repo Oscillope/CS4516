@@ -28,7 +28,7 @@
 		    \centering
 		    \begin{tikzpicture}
 		    \begin{axis} [
-			    title=Smart Switch,
+			    title=LoopAware Device,
 			    xlabel=Time ($\mu$s),
 			    ylabel=\% Broadcast Traffic,
 		    ]
@@ -43,10 +43,14 @@
     \end{figure}
 
     To show the effect of broadcast storms on network traffic, we determined the percentage of broadcast frames from total network traffic both with and without a forwarding loop.
-    Normally (in a star network with conventional switches), nearly all of the traffic will start as broadcast traffic during the auto-configuration period.
+    Normally in a switched Ethernet network, nearly all of the traffic will start as broadcast traffic during the auto-configuration period.
     The amount of broadcast traffic will then drop down to a noise-floor level.
     If the network has a loop in it, the amount of broadcast traffic will not drop off significantly because the network will start a broadcast storm as a result of the forwarding loop.
-    Our device exhibits the same drop-off behavior even in a graph network because it filters broadcast packets out of forwarding loops, preventing a broadcast storm from occurring.
+    This broadcast storm behavior is shown in Figure \ref{fig:stdbcast}.
+    Note that broadcast traffic stays at or near 100\% of total traffic (save a few bursts of legitimate unicast) for the entirety of the measured period. 
+    As shown in Figure \ref{fig:smtbcast}, our device exhibits the same drop-off behavior even in a graph network because it filters broadcast packets out of forwarding loops, preventing a broadcast storm from occurring.
+    These results confirm our hypothesis that LoopAware is capable of detecting and preventing broadcast storms that would normally occur in switched Ethernet networks.
+    In our next experiment we explored the impact this mitigation had on the throughput of the network.
 
     \begin{table}[ht]
 	    \centering
