@@ -3,4 +3,3 @@ impacket==0.9.11
 scapy==2.2.0-dev
 wsgiref==0.1.2
 http://corelabs.coresecurity.com/index.php?module=Wiki&action=attachment&type=tool&page=Pcapy&file=pcapy-0.10.8.tar.gz
-APScheduler==2.1.2
