@@ -71,7 +71,7 @@ class Switch(object):
     # For metric purposes
     watch = Stopwatch()
     # Moving average of broadcast traffic
-    average = 0.5
+    average = None
     # Moving average weight for new packets
     NEW_PACKET_WEIGHT = 0.1
     
@@ -117,7 +117,7 @@ class Switch(object):
     
     def switch_forever(self):
         logfile = open('broadcast_percent_%s.dat' %(str(datetime.now())), 'w')
-        watch.start()
+        self.watch.start()
         # Start up interface
         for iface in self.interfaces:
             iface.activate()
@@ -131,13 +131,19 @@ class Switch(object):
                     if not queue.empty():
                         pkt = Ether(queue.get())
                         dst_ifaces = self._process_packet(pkt, iface)
-                        curtime = watch.gettime()
-                        if len(dst_iface) == 1:
-                            self.average *= 1 - self.NEW_PACKET_WEIGHT
-                        elif len(dst_iface) > 1:
-                            self.average *= 1 - self.NEW_PACKET_WEIGHT
-                            self.average += self.NEW_PACKET_WEIGHT
-                        logfile.write("{0:16d} {1:4f}".format(curtime, self.average))
+                        curtime = self.watch.gettime()
+                        if len(dst_ifaces) == 1:
+                            if self.average is None:
+                                self.average = 0
+                            else:
+                                self.average *= 1 - self.NEW_PACKET_WEIGHT
+                        elif len(dst_ifaces) > 1:
+                            if self.average is None:
+                                self.average = 1
+                            else:
+                                self.average *= 1 - self.NEW_PACKET_WEIGHT
+                                self.average += self.NEW_PACKET_WEIGHT
+                        logfile.write("%d %f\n" %(curtime, self.average))
                         self._forward_packet(pkt, dst_ifaces)
             except IndexError:
                 pass
