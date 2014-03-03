@@ -8,8 +8,27 @@
 
     Three topologies were be employed in testing LoopAware.
     For each topology, the network was tested with our simulated Ethernet switch and then with our simulated LoopAware device.
-    We began with a single switch in a star topology to set a baseline for functionality as a switch.
+    We began with a single switch in a star topology to set a baseline for functionality as a switch, as shown in Figure \ref{fig:startop}.
     Next, we tested the switches in a configuration with redundant links to a conventional switch, creating a forwarding loop.
+    This configuration is shown in Figure \ref{fig:looptop}.
+    \begin{figure}[ht]
+        \centering
+        \begin{subfigure}[b]{0.4\textwidth}
+            \centering
+            \input{../images/topology2.tex}
+            \label{fig:startop}
+            \caption{``Star'' Network Topology}
+        \end{subfigure}
+        \hfill
+        \begin{subfigure}[b]{0.4\textwidth}
+            \centering
+            \input{../images/topology1.tex}
+            \label{fig:looptop}
+            \caption{``Loop'' Network Topology}
+        \end{subfigure}
+        \label{fig:topologies}
+        \caption{Network Testing Topologies}
+    \end{figure}
     Our final test will simulates a link failure in one of the redundant links connecting a LoopAware device and a conventional switch.
 
     % %Broadcast traffic moving average to show broadcast storm
