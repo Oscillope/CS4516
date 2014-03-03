@@ -8,9 +8,12 @@ from switch import Switch
 from random import choice
 
 # this is the number of checksums for an interface to store
-checker_backlog = 64 # networking people and powers of 2, LOL
+checker_backlog = 64 # experimentally determined to perform within acceptable parameters while still
+                     # detecting loops
 
 logging.getLogger("scapy").setLevel(logging.ERROR)
+# MAC address used to send special loop detection packets
+SWITCH_SOURCE_MAC = "08:00:27:10:e2:69"
 
 class FancySwitch(Switch):
     # dict of circular buffers of frames that have been sent out interface x, indexed by interface
@@ -21,17 +24,11 @@ class FancySwitch(Switch):
     circular_queue = collections.deque()
     # this keeps track of the current flows
     flow_table = {}
-    # outgoing activity for the purposes of bandwidth sharing and load balancing
-    outgoing_activity_map = {}
     # timers to keep track of all of the equivalencies, for failover detection
     equivalency_timeout = {}
     # sketchy way of avoiding calling reap_dead_equivalencies too frequently
     pkts_till_reap = 0
-    def _add_interface(self, iface_name):
-        # add interface just like a regular switch
-        iface = super(FancySwitch, self)._add_interface(iface_name)
-        self.outgoing_activity_map[iface_name] = 0.0 # havent sent any traffic yet
-        
+
     def _process_packet(self, pkt, iface):
         if self.pkts_till_reap == 0:
             self.pkts_till_reap = 100
@@ -39,8 +36,9 @@ class FancySwitch(Switch):
         else:
             self.pkts_till_reap -= 1
         # Check for our special packets.
-        if pkt.dst == "ff:ff:ff:ff:ff:ff" and pkt.src == "08:00:27:10:e2:69":
+        if pkt.dst == "ff:ff:ff:ff:ff:ff" and pkt.src == SWITCH_SOURCE_MAC:
             try:
+                #remove padding to parse interface from special packet
                 src_iface_name = str(pkt.load).strip('\0')
                 #print "Raw data: %s on %s" %(src_iface_name, iface.name)
                 for src_iface in self.interfaces:
@@ -57,8 +55,6 @@ class FancySwitch(Switch):
             self.hosts[pkt.src] = iface
             print "Found host %s on interface %s " %(pkt.src, iface)
         
-        
-            
         #print "iface forwarding match: %s hash check: %s MAC in hosts: %s" %(str(self.hosts[eth_header.src] != iface), str(self._check_hash(str(pkt), iface)), str(eth_header.src in self.hosts))
         # Check dictionary (if not a broadcast MAC) for mapping between destination and interface
         # Set up list of interfaces
@@ -100,8 +96,8 @@ class FancySwitch(Switch):
             if len(ifaces) == 1:
                 self._duplex_equivalency(iface, self.hosts[pkt.src])
             else:
-                # Make an empty broadcast frame.
-                pkt = Ether(dst="ff:ff:ff:ff:ff:ff", src="08:00:27:10:e2:69")/Raw(load=iface.name)
+                # Make a special broadcast frame to detect loop.
+                pkt = Ether(dst="ff:ff:ff:ff:ff:ff", src=SWITCH_SOURCE_MAC)/Raw(load=iface.name)
                 # Send it out.
                 sendp(pkt, iface=iface.name, verbose=False)
                 

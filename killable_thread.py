@@ -2,10 +2,12 @@ import threading
 import inspect
 import ctypes
 
-# This is not original code.
+# A message from Group 5:
+# THIS IS NOT ORIGINAL CODE.
 # It was taken from http://tomerfiliba.com/recipes/Thread2/
 # It is needed because python does not support asychronous
-# interrupts of threads.
+# interruption of threads.
+# This code is licensed under CC-BY-SA: http://creativecommons.org/licenses/by-sa/3.0/
 
 
 def _async_raise(tid, exctype):
