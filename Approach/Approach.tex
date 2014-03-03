@@ -1,6 +1,6 @@
 \section{Approach}
 \label{sec:approach}
-    Unlike a conventional switch, which uses a forwarding table to determine which interface to forward frames, LoopAware creates flow-like entries in its forwarding table based on source IP address (when available) to allow bandwidth sharing over linked interfaces.
+    Unlike a conventional switch, which uses a forwarding table to determine which interface to forward frames on, LoopAware creates flow-like entries in its forwarding table based on source IP address (when available) in addition to destination MAC address in order to allow bandwidth sharing over linked interfaces.
     Even when linked with a conventional switch, LoopAware can utilize multiple links to share bandwidth upstream (towards the linked switch) and have redundancy downstream (from the linked switch).
     Assuming that a conventional switch will forward to multiple ports simultaneously if it detects the same MAC address multiple times, a link can go down between LoopAware and the conventional switch without dropping a single frame.
     As a result, ongoing connections can be maintained throughout a link failure.
@@ -9,6 +9,7 @@
     LoopAware detects these loops by caching a hash of each frame that is received, and comparing it to incoming frames to detect duplicates.
     When a duplicate frame is detected, the interface it was sent on and the interface it was received on are determined to be aliases of each other.
     In the case that a duplicate frame was a broadcast and the source interface can not be determined, LoopAware sends a frame back over the interface that the frame was received on.
+    
     To increase efficiency and limit complexity in a hardware implementation of LoopAware, we would recommend using the CRC that is already included in the Ethernet frame as the hash.
     Due to the difficulty of obtaining the CRC from the frames in software, our implementation simply stores the entire packet for comparison.
     As new hashes are added to the buffer, the older ones will be removed after enough other packets have been added to the buffer.

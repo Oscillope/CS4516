@@ -26,9 +26,10 @@
 \begin{document}
 \maketitle
 \begin{abstract}
-	Our project aims to address a need for more resilient, higher performance layer 2 with only one piece of additional hardware by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
-	In addition, we aim to allow switches to distribute bandwidth over multiple interfaces when connected together.
-	This allows us to not only be competitive with systems such as EtherFuse \cite{etherfuse}, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
+	We present LoopAware: a device designed to create more resilient, higher performance layer 2 infrastructure with little additional hardware.
+	LoopAware accomplishes this goal by allowing multiple switch ports to be connected without the risk of forwarding loops or broadcast storms.
+	In addition, LoopAware allows switches to distribute bandwidth over multiple interfaces when connected together by establishing flows between ports.
+	This allows us to not only be competitive with systems such as EtherFuse, which prevents forwarding loops by disabling ports that it detects are linked, but to surpass them by adding enhanced redundancy and performance via bandwidth sharing.
 \end{abstract}
 \input{../Introduction/Introduction.tex}
 \input{../Approach/Approach.tex}
