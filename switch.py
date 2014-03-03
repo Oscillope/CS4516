@@ -117,13 +117,12 @@ class Switch(object):
     
     def switch_forever(self):
         logfile = open('broadcast_percent_%s.dat' %(str(datetime.now())), 'w')
-        self.watch.start()
         # Start up interface
         for iface in self.interfaces:
             iface.activate()
         # Switch forever
-        while True:
-            try:
+        try:
+            while True:
                 # For each interface, send a frame off the queue
                 for iface in self.interfaces:
                     queue = iface.incoming
@@ -131,30 +130,32 @@ class Switch(object):
                     if not queue.empty():
                         pkt = Ether(queue.get())
                         dst_ifaces = self._process_packet(pkt, iface)
-                        curtime = self.watch.gettime()
                         if len(dst_ifaces) == 1:
                             if self.average is None:
                                 self.average = 0
+                                self.watch.start()
                             else:
                                 self.average *= 1 - self.NEW_PACKET_WEIGHT
                         elif len(dst_ifaces) > 1:
                             if self.average is None:
                                 self.average = 1
+                                self.watch.start()
                             else:
                                 self.average *= 1 - self.NEW_PACKET_WEIGHT
                                 self.average += self.NEW_PACKET_WEIGHT
+                        curtime = self.watch.gettime()
                         logfile.write("%d %f\n" %(curtime, self.average))
                         self._forward_packet(pkt, dst_ifaces)
-            except IndexError:
-                pass
-            except KeyboardInterrupt:
-                print "Keyboard interrupt detected!"
-                logfile.close()
-                print "Closed logfile."
-                for iface in self.interfaces:
-                    iface.deactivate()
-                print "Exiting..."
-                sys.exit(0)
-            except:
-                print "Unexpected error:"
-                traceback.print_exc(file=sys.stdout)
+        except IndexError:
+            pass
+        except KeyboardInterrupt:
+            print "Keyboard interrupt detected!"
+            logfile.close()
+            print "Closed logfile."
+            for iface in self.interfaces:
+                iface.deactivate()
+            print "Exiting..."
+            sys.exit(0)
+        except:
+            print "Unexpected error:"
+            traceback.print_exc(file=sys.stdout)
